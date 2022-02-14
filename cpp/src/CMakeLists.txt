@@ -5,6 +5,8 @@ include_directories("../../include/opentims/opentims++")
 include_directories("../../include/eigen")
 
 find_library(LIB_TBB NAMES tbb REQUIRED)
+find_library(SQLITE NAMES sqlite3 REQUIRED)
+find_library(ZSTD NAMES zstd REQUIRED)
 
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
@@ -17,5 +19,5 @@ add_library(proteolizard SHARED Proteolizard.cpp)
 
 target_link_libraries(proteolizard ${LIB_TBB})
 target_link_libraries(proteolizard ${PYTHON_LIBRARIES})
-target_link_libraries(proteolizard zstd)
-target_link_libraries(proteolizard sqlite3)
+target_link_libraries(proteolizard ${SQLITE})
+target_link_libraries(proteolizard ${ZSTD})
