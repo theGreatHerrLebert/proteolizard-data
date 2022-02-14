@@ -25,7 +25,7 @@ def cluster_precursors_dbscan(experiment_slice,
     """
 
     # get points from slice
-    points = experiment_slice.get_points()
+    points = experiment_slice.get_precursor_coords3D().get_points()
 
     # make copy to avoid return of scaled values
     rt_dim = np.copy(points[:, 0])
@@ -78,7 +78,7 @@ def cluster_precursors_hdbscan(experiment_slice,
     """
 
     # get points from slice
-    points = experiment_slice.get_points()
+    points = experiment_slice.get_precursor_coords3D().get_points()
 
     # make copy to avoid return of scaled values
     rt_dim = np.copy(points[:, 0])
