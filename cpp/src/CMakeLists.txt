@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 project(src)
 
-
-include_directories("../../../proteolizard/cpp/src")
 include_directories("../../include/opentims/opentims++")
 include_directories("../../include/eigen")
 
@@ -19,6 +17,5 @@ add_library(proteolizard SHARED Proteolizard.cpp)
 
 target_link_libraries(proteolizard ${LIB_TBB})
 target_link_libraries(proteolizard ${PYTHON_LIBRARIES})
-target_link_libraries(proteolizard zstd)
 target_link_libraries(proteolizard zstd)
 target_link_libraries(proteolizard sqlite3)
