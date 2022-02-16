@@ -138,7 +138,7 @@ TimsFramePL TimsFramePL::toResolution(const int resolution) {
 TimsFramePL TimsFramePL::filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int minIntensity) {
 
     std::vector<int> retScan, retIntensity;
-    std::vector<double> retMz;
+    std::vector<double> retMz, retInv;
 
     // TODO: make this more efficient (binary search?)
     for(std::size_t i = 0; i < this->mzs.size(); i++){
@@ -146,17 +146,19 @@ TimsFramePL TimsFramePL::filterRanged(int scanMin, int scanMax, double mzMin, do
         int scan = this->scans[i];
         double mz = this->mzs[i];
         int intensity = this->intensities[i];
+        double invMob = this->inv_ion_mobs[i];
 
         if((scan >= scanMin) && (scan <= scanMax) && (mz >= mzMin) && (mz <= mzMax) && (intensity >= minIntensity)){
             retScan.push_back(scan);
             retMz.push_back(mz);
             retIntensity.push_back(intensity);
+            retInv.push_back(invMob);
         }
     }
 
     // This guards for empty return
     if(retScan.size() > 0)
-        return TimsFramePL(this->frameId, retScan, retMz, retIntensity, {1}, {0.0});
+        return TimsFramePL(this->frameId, retScan, retMz, retIntensity, {1}, {retInv});
 
     return TimsFramePL(this->frameId, {(scanMin + scanMax) / 2}, {(mzMin + mzMax) / 2}, {0}, {1}, {1.0});
 }

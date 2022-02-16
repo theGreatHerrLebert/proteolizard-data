@@ -13,6 +13,7 @@
 #include "VectorizedSpectrum.h"
 #include "Spectrum.h"
 #include "ExposedTimsDataHandle.h"
+#include "Slice.h"
 
 namespace py = pybind11;
 
@@ -87,8 +88,8 @@ py::class_<TimsFramePL>(h, "TimsFrame")
     .def("fold", [](TimsFramePL &self, int resolution, int width){
         return self.fold(resolution, width);
     })
-    .def("filterRanged", [](TimsFramePL &self, int scanMin, int scanMax, double mzMin, double mzMax){
-        return self.filterRanged(scanMin, scanMax, mzMin, mzMax);
+    .def("filterRanged", [](TimsFramePL &self, int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin){
+        return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
     })
     .def(py::self + py::self)
     // TODO: move logic out of module
@@ -139,6 +140,50 @@ py::class_<ExposedTimsDataHandle>(h, "ExposedTimsDataHandle")
     .def("getFrame", [](ExposedTimsDataHandle &self, int frameId){
         TimsFramePL frame =  self.getTimsFramePL(frameId);
         return frame;
+    })
+    .def("getSlice", [](ExposedTimsDataHandle &self, std::vector<int> precursors, std::vector<int> fragments){
+        TimsSlicePL slice = self.getTimsSlicePL(precursors, fragments);
+        return slice;
+    })
+    ;
+// ----------------
+py::class_<Points3D>(h, "Points3D")
+    .def(py::init<std::vector<int> &, std::vector<int> &, std::vector<double> &, std::vector<double> &, std::vector<int> &>())
+    .def("getFrames", [](Points3D &self){
+         py::array a = py::cast(self.frame);
+        return a;
+    })
+    .def("getScans", [](Points3D &self){
+        py::array a = py::cast(self.scan);
+        return a;
+    })
+    .def("getMz", [](Points3D &self){
+        py::array a = py::cast(self.mz);
+        return a;
+    })
+    .def("getInvIonMobility", [](Points3D &self){
+        py::array a = py::cast(self.invIonMobility);
+        return a;
+    })
+    .def("getIntensity", [](Points3D &self){
+        py::array a = py::cast(self.intensity);
+        return a;
+    })
+    ;
+    // -------------- Tims-SLICE ------------
+    py::class_<TimsSlicePL>(h, "TimsSlicePL")
+    .def(py::init<std::vector<TimsFramePL> &, std::vector<TimsFramePL> &>())
+    .def("getPrecursors", [](TimsSlicePL &self){
+        return self.precursors;
+    })
+    .def("getFragments", [](TimsSlicePL &self, int id){
+        return self.fragments;
+    })
+    .def("filterRanged", [](TimsSlicePL &self, int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin){
+        return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
+    })
+    .def("getPoints", [](TimsSlicePL &self, bool precursor){
+        return self.getPoints3D(precursor);
     })
     ;
 }

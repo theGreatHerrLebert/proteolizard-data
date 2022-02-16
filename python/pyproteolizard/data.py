@@ -35,6 +35,13 @@ class PyTimsDataHandle:
 
         return TimsFrame(frame_pointer)
 
+    def get_slice(self, precursor_ids, fragment_ids):
+        return TimsSlice(self.__handle.getSlice(precursor_ids, fragment_ids))
+
+    def get_slice_rt_range(self, rt_min, rt_max):
+        prec_ids, frag_ids = self.__get_frame_ids_by_type_rt_range(rt_min, rt_max)
+        return self.get_slice(prec_ids, frag_ids)
+
     # TODO: move this out of the data handle, not needed for timsTOF interface
     def get_selected_precursors(self):
         """
@@ -85,6 +92,10 @@ class PyTimsDataHandle:
         :return: table of complete meta data of all frames in experiment
         """
         return pd.read_sql_query("SELECT * FROM Frames", sqlite3.connect(self.dp + "/analysis.tdf"))
+
+    def __get_frame_ids_by_type_rt_range(self, rt_start, rt_stop):
+        frames = self.meta_data[(rt_start <= self.meta_data.Time) & (self.meta_data.Time <= rt_stop)]
+        return frames[frames.MsMsType == 0].Id.values, frames[frames.MsMsType != 0].Id.values
 
 
 class MzSpectrum:
@@ -205,8 +216,8 @@ class TimsFrame:
         """
         return VectorizedTimsFrame(self.__frame.vectorize(resolution))
 
-    def filter_ranged(self, scan_min, scan_max, mz_min, mz_max):
-        return TimsFrame(self.__frame.filterRanged(scan_min, scan_max, mz_min, mz_max))
+    def filter_ranged(self, scan_min, scan_max, mz_min, mz_max, intensity_min):
+        return TimsFrame(self.__frame.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
 
     def fold(self, resolution=2, width=4):
         return TimsFrame(self.__frame.fold(resolution, width))
@@ -214,3 +225,37 @@ class TimsFrame:
     def get_spectra(self):
         spec_ptrs = self.__frame.getMzSpectra()
         return [MzSpectrum(ptr) for ptr in spec_ptrs]
+
+
+class TimsSlice:
+    def __init__(self, slice_ptr):
+        self.__slice_ptr = slice_ptr
+
+    def get_precursor_frames(self):
+        return [TimsFrame(x) for x in self.__slice_ptr.getPrecursors()]
+
+    def get_fragment_frames(self):
+        return [TimsFrame(x) for x in self.__slice_ptr.getFragments()]
+
+    def get_precursor_points(self):
+        return Points3D(self.__slice_ptr.getPoints(True)).get_points()
+
+    def get_fragment_points(self):
+        return Points3D(self.__slice_ptr.getPoints(False)).get_points()
+
+    def filter_ranged(self, mz_min, mz_max, scan_min=0, scan_max=1000, intensity_min=0):
+        return TimsSlice(self.__slice_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
+
+
+class Points3D:
+    def __init__(self, point_ptr):
+        self.__point_ptr = point_ptr
+
+    def get_points(self):
+        ids = self.__point_ptr.getFrames()
+        scans = self.__point_ptr.getScans()
+        mz = self.__point_ptr.getMz()
+        inv_ion_mob = self.__point_ptr.getInvIonMobility()
+        intensity = self.__point_ptr.getIntensity()
+
+        return pd.DataFrame({'frame': ids, 'scan': scans, 'invIonMob': inv_ion_mob, 'mz': mz, 'intensity': intensity})

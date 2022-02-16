@@ -14,6 +14,7 @@
 #include <map>
 #include <bits/stdc++.h>
 #include "../../include/opentims/opentims++/opentims_all.cpp"
+#include "Slice.h"
 
 /**
  * helper for TDH initialization
@@ -46,12 +47,7 @@ public:
     ExposedTimsDataHandle(std::string dp, std::string bp);
 
     TimsFramePL getTimsFramePL(const int frameId);
-
-    /*
-    TimsSparseSlice getSparseSlice(std::vector<int> frameIds, const int scanMin, const int scanMax,
-                                   const double mzMin, const double mzMax, int resolution, int numThreads, bool fold,
-                                   int foldWidth);
-    */
+    TimsSlicePL getTimsSlicePL(std::vector<int>& precursorIds, std::vector<int>& fragmentIds);
 };
 
 ExposedTimsDataHandle::ExposedTimsDataHandle(std::string dp, std::string bp) : handle(get_tdh(dp, bp)) {
@@ -92,6 +88,27 @@ TimsFramePL ExposedTimsDataHandle::getTimsFramePL(const int frameId) {
     }
 
     return TimsFramePL(frameId, scans, mzs, intensities, tof, inv_ion_mobility);
+}
+
+TimsSlicePL ExposedTimsDataHandle::getTimsSlicePL(std::vector<int>& precursorIds, std::vector<int>& fragmentIds){
+
+    std::vector<TimsFramePL> retPrecursors;
+    std::vector<TimsFramePL> retFragments;
+
+    retPrecursors.reserve(precursorIds.size());
+    retFragments.reserve(fragmentIds.size());
+
+    for(auto id: precursorIds)
+    {
+    retPrecursors.push_back(this->getTimsFramePL(id));
+    }
+
+    for(auto id: fragmentIds)
+    {
+    retFragments.push_back(this->getTimsFramePL(id));
+    }
+
+    return {retPrecursors, retFragments};
 }
 
 std::vector<TimsFramePL> ExposedTimsDataHandle::getTimsFramesFiltered(std::vector<int> frameIds,
