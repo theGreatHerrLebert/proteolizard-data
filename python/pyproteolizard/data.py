@@ -205,8 +205,8 @@ class TimsFrame:
         """
         return VectorizedTimsFrame(self.__frame.vectorize(resolution))
 
-    def filter_ranged(self, scanMin, scanMax, mzMin, mzMax):
-        return TimsFrame(self.__frame.filterRanged(scanMin, scanMax, mzMin, mzMax))
+    def filter_ranged(self, scan_min, scan_max, mz_min, mz_max):
+        return TimsFrame(self.__frame.filterRanged(scan_min, scan_max, mz_min, mz_max))
 
     def fold(self, resolution=2, width=4):
         return TimsFrame(self.__frame.fold(resolution, width))
