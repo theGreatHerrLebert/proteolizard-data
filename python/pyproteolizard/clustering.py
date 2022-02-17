@@ -58,7 +58,9 @@ def cluster_precursors_hdbscan(experiment_slice,
                                metric: str = 'euclidean',
                                cycle_scaling: float = -.4,
                                scan_scaling: float = .4,
-                               resolution: int = 50_000):
+                               resolution: int = 50_000,
+                               mz_scaling: float = 0.0
+                               ):
     """
     cluster the precursors of a given (potentially filtered) precursor slice of timsTOF data with dbscan
     :param algorithm:
@@ -88,7 +90,7 @@ def cluster_precursors_hdbscan(experiment_slice,
     # scale values according to parameters
     rt_dim_scaled = rt_dim / np.power(2, cycle_scaling)
     dt_dim_scaled = dt_dim / np.power(2, scan_scaling)
-    mz_dim_scaled = peak_width_preserving_mz_transform(mz_dim, resolution=resolution)
+    mz_dim_scaled = peak_width_preserving_mz_transform(mz_dim, resolution=resolution) / np.power(2, mz_scaling)
 
     hdbscan = HDBSCAN(algorithm=algorithm,
                       alpha=alpha,
