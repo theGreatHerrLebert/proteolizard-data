@@ -176,7 +176,7 @@ py::class_<Points3D>(h, "Points3D")
     .def("getPrecursors", [](TimsSlicePL &self){
         return self.precursors;
     })
-    .def("getFragments", [](TimsSlicePL &self, int id){
+    .def("getFragments", [](TimsSlicePL &self){
         return self.fragments;
     })
     .def("filterRanged", [](TimsSlicePL &self, int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin){
