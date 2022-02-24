@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../../../python/")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-add_library(proteolizard SHARED Proteolizard.cpp)
+add_library(proteolizard SHARED Proteolizard.cpp Hashing.h)
 
 target_link_libraries(proteolizard ${LIB_TBB})
 target_link_libraries(proteolizard ${PYTHON_LIBRARIES})

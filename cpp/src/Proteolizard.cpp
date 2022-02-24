@@ -1,15 +1,14 @@
 #include <vector>
-#include <tuple>
-#include <ostream>
-#include <iostream>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+#include <pybind11/eigen.h>
 #include <pybind11/operators.h>
 #include <string>
 #include <cmath>
 
 #include "Frame.h"
+#include "Hashing.h"
 #include "VectorizedSpectrum.h"
 #include "Spectrum.h"
 #include "ExposedTimsDataHandle.h"
@@ -20,42 +19,58 @@ namespace py = pybind11;
 PYBIND11_MODULE(libproteolizard, h) {
 h.doc() = "exposing fast timsTOF processing and access functions to be called from python";
 // SPECTRUM
-py::class_<MzSpectrum>(h, "MzSpectrum")
+py::class_<MzSpectrumPL>(h, "MzSpectrumPL")
     .def(py::init<int &, int &, std::vector<double> &, std::vector<int> &>())
-    .def("getFrameId", [](MzSpectrum &self){
+    .def("getFrameId", [](MzSpectrumPL &self){
         return self.frameId;
     })
-    .def("getScanId", [](MzSpectrum &self){
+    .def("getScanId", [](MzSpectrumPL &self){
         return self.scanId;
     })
-    .def("getMzs", [](MzSpectrum &self){
+    .def("getMzs", [](MzSpectrumPL &self){
         return py::array(py::cast(self.mz));
     })
-    .def("getIntensities", [](MzSpectrum &self){
+    .def("getIntensities", [](MzSpectrumPL &self){
         return py::array(py::cast(self.intensity));
     })
-    .def("toResolution", [](MzSpectrum &self, int resolution){
-        return self.toResolution(resolution);
+    .def("vectorize", [](MzSpectrumPL &self, int resolution){
+        return self.vectorize(resolution);
+    })
+    // TODO: lift logic out of bind
+    .def("windows", [](MzSpectrumPL &self, double windowLength, bool overlapping, int minPeaks, int minIntensity){
+        auto windows = self.windows(windowLength, overlapping, minPeaks, minIntensity);
+        std::vector<int> bins;
+        bins.reserve(windows.size());
+
+        std::vector<MzSpectrumPL> win;
+        win.reserve(windows.size());
+
+        for(const auto& [key, value]: windows){
+            bins.push_back(key);
+            win.push_back(value);
+        }
+
+        return py::make_tuple(bins, win);
     })
     ;
 
 // VECTORIZED SPECTRUM
-py::class_<MzVector>(h, "MzVector")
+py::class_<MzVectorPL>(h, "MzVectorPL")
     .def(py::init<int &, int &, int &, std::vector<int> &, std::vector<int> &>())
-    .def("getFrameId", [](MzVector &self){
+    .def("getFrameId", [](MzVectorPL &self){
         return self.frameId;
     })
-    .def("getScanId", [](MzVector &self){
+    .def("getScanId", [](MzVectorPL &self){
         return self.scanId;
     })
-    .def("getResolution", [](MzVector &self){
+    .def("getResolution", [](MzVectorPL &self){
         return self.resolution;
     })
-    .def("getIndices", [](MzVector &self){
+    .def("getIndices", [](MzVectorPL &self){
         return py::array(py::cast(self.indices));
     })
     .def(py::self + py::self)
-    .def("getValues", [](MzVector &self){
+    .def("getValues", [](MzVectorPL &self){
         return py::array(py::cast(self.values));
     });
 // FRAME
@@ -95,7 +110,7 @@ py::class_<TimsFramePL>(h, "TimsFrame")
     // TODO: move logic out of module
     .def("getMzSpectra", [](TimsFramePL &self){
         auto spectra = self.spectra();
-        std::vector<MzSpectrum> ret;
+        std::vector<MzSpectrumPL> ret;
         ret.reserve(spectra.size());
 
         for(auto&[key, value]: spectra)
@@ -125,7 +140,7 @@ py::class_<TimsFrameVectorizedPL>(h, "TimsFrameVectorized")
     })
     .def("getSpectra", [](TimsFrameVectorizedPL &self){
         auto spec = self.spectra();
-        std::vector<MzVector> retVec;
+        std::vector<MzVectorPL> retVec;
         retVec.reserve(spec.size());
         for(const auto& [_, value]: spec)
             retVec.push_back(value);
@@ -185,5 +200,15 @@ py::class_<Points3D>(h, "Points3D")
     .def("getPoints", [](TimsSlicePL &self, bool precursor){
         return self.getPoints3D(precursor);
     })
+    ;
+    py::class_<TimsHashGenerator>(h, "TimsHashGenerator")
+    .def(py::init<int, int, int, int>())
+
+    .def("hashMzSpectrum", [](TimsHashGenerator& self, MzSpectrumPL& spectrum, int minPeaks,
+                              int minIntensity, double windowLength, bool overlapping, bool restricted){
+        py::array a = py::cast(self.hashSpectrum(spectrum, minPeaks, minIntensity, windowLength, overlapping, restricted));
+        return a;
+    })
+    .def("getMatrixCopy", &TimsHashGenerator::getMatrixCopy)
     ;
 }

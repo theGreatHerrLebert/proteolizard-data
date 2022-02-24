@@ -10,6 +10,7 @@
 #include <math.h>
 #include <map>
 #include <algorithm>
+#include <utility>
 #include "Spectrum.h"
 #include "../../include/eigen/Eigen/Dense"
 #include "../../include/eigen/Eigen/Sparse"
@@ -19,24 +20,23 @@
  */
 struct TimsFrameVectorizedPL {
     
-    int frameId, resolution; // coordinates
+    int frameId{}, resolution{}; // coordinates
     std::vector<int> scans, indices, values; // coordinates
-    // std::vector<double> values; // data
-    
-    TimsFrameVectorizedPL(){};
+
+    TimsFrameVectorizedPL()= default;;
     // constructors
-    TimsFrameVectorizedPL(int id, int res, const std::vector<int>& scan, const std::vector<int>& index, const std::vector<int>& v):
-    frameId(id), resolution(res), scans(scan), indices(index), values(v){}
+    TimsFrameVectorizedPL(int id, int res, std::vector<int>  scan, std::vector<int>  index, std::vector<int>  v):
+    frameId(id), resolution(res), scans(std::move(scan)), indices(std::move(index)), values(std::move(v)){}
 
     // functions
-    TimsFrameVectorizedPL filterRanged(int scanMin, int scanMax, int indexMin, int indexMax, int intensityMin) const;
-    std::map<int, MzVector> spectra();
+    [[nodiscard]] TimsFrameVectorizedPL filterRanged(int scanMin, int scanMax, int indexMin, int indexMax, int intensityMin) const;
+    std::map<int, MzVectorPL> spectra();
     friend TimsFrameVectorizedPL operator+(const TimsFrameVectorizedPL &leftFrame, const TimsFrameVectorizedPL &rightFrame);
 };
 
-std::map<int, MzVector> TimsFrameVectorizedPL::spectra() {
+std::map<int, MzVectorPL> TimsFrameVectorizedPL::spectra() {
 
-    std::map<int, MzVector> specMap;
+    std::map<int, MzVectorPL> specMap;
     
     // insert leftFrame values into map
     for (auto it = this->indices.begin(); it != this->indices.end(); ++it) {
@@ -50,7 +50,7 @@ std::map<int, MzVector> TimsFrameVectorizedPL::spectra() {
             specMap[scan].values.push_back(intensity);
         }
         else {
-            specMap[scan] = MzVector{this->resolution, this->frameId, scan, {index}, {intensity}};
+            specMap[scan] = MzVectorPL{this->resolution, this->frameId, scan, {index}, {intensity}};
         }
     }
     return specMap;
@@ -103,7 +103,7 @@ TimsFrameVectorizedPL operator+(const TimsFrameVectorizedPL &leftFrame, const Ti
         retValues.push_back(value);   
    }
 
-    return TimsFrameVectorizedPL(leftFrame.frameId, leftFrame.resolution, retScans, retIndices, retValues);
+    return {leftFrame.frameId, leftFrame.resolution, retScans, retIndices, retValues};
 }
 
 /**
@@ -134,9 +134,9 @@ TimsFrameVectorizedPL TimsFrameVectorizedPL::filterRanged(int scanMin, int scanM
 
     // This guards for empty return
     if(retScans.size() > 0)
-        return TimsFrameVectorizedPL(this->frameId, this->resolution, retScans, retIndices, retValues);
+        return {this->frameId, this->resolution, retScans, retIndices, retValues};
 
-    return TimsFrameVectorizedPL(this->frameId, this->resolution, {(scanMin + scanMax) / 2}, {(indexMin + indexMax) / 2}, {0});
+    return {this->frameId, this->resolution, {(scanMin + scanMax) / 2}, {(indexMin + indexMax) / 2}, {0}};
 }
 
 #endif //CPP_VECTORIZED_FRAME_H

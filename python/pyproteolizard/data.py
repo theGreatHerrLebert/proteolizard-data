@@ -100,29 +100,33 @@ class PyTimsDataHandle:
 
 class MzSpectrum:
     def __init__(self, spec_pointer):
-        self.__spec = spec_pointer
+        self.spec_ptr = spec_pointer
 
     def frame_id(self):
-        return self.__spec.getFrameId()
+        return self.spec_ptr.getFrameId()
 
     def scan_id(self):
-        return self.__spec.getScanId()
+        return self.spec_ptr.getScanId()
 
     def mz(self):
-        return self.__spec.getMzs()
+        return self.spec_ptr.getMzs()
 
     def intensity(self):
-        return self.__spec.getIntensities()
+        return self.spec_ptr.getIntensities()
 
     def __add__(self, other):
-        return MzSpectrum(self.__spec + other.__spec)
+        return MzSpectrum(self.spec_ptr + other.spec_ptr)
 
     def to_resolution(self, resolution: int = 2):
         """
         :param resolution:
         :return:
         """
-        return self.__spec.toResolution(resolution)
+        return self.spec_ptr.toResolution(resolution)
+
+    def to_windows(self, window_length: float = 10, overlapping: bool = False, min_peaks: int = 5, min_intensity: int = 150):
+        bins, w = self.spec_ptr.windows(window_length, overlapping, min_peaks, min_intensity)
+        return bins, [MzSpectrum(x) for x in w]
 
 
 class MzVector:
@@ -216,7 +220,7 @@ class TimsFrame:
         """
         return VectorizedTimsFrame(self.__frame.vectorize(resolution))
 
-    def filter_ranged(self, scan_min, scan_max, mz_min, mz_max, intensity_min):
+    def filter_ranged(self, scan_min=int(0.0), scan_max=int(1e3), mz_min=0.0, mz_max=2e3, intensity_min=50):
         return TimsFrame(self.__frame.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
 
     def fold(self, resolution=2, width=4):

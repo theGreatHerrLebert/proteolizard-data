@@ -10,6 +10,7 @@
 #include <math.h>
 #include <map>
 #include <algorithm>
+#include <utility>
 #include "Spectrum.h"
 #include "VectorizedFrame.h"
 #include "../../include/eigen/Eigen/Dense"
@@ -20,28 +21,28 @@
  */
 struct TimsFramePL {
     // member data
-    int frameId; 
-    std::vector<int> scans;
-    std::vector<double> mzs;
-    std::vector<int> intensities, tofs;
-    std::vector<double> inv_ion_mobs;
+    int frameId{};
+    std::vector<int> scans {};
+    std::vector<double> mzs {};
+    std::vector<int> intensities, tofs {};
+    std::vector<double> inv_ion_mobs {};
     
     // constructors
-    TimsFramePL(){}
-    TimsFramePL(int id, const std::vector<int>& scan, const std::vector<double>& mz, const std::vector<int>& intensity, const std::vector<int>& tof, const std::vector<double>& inv_ion_mob):
-    frameId(id), scans(scan), mzs(mz), intensities(intensity), tofs(tof), inv_ion_mobs(inv_ion_mob){}
+    TimsFramePL()= default;
+    TimsFramePL(int id, std::vector<int>  scan, std::vector<double>  mz, std::vector<int>  intensity, std::vector<int>  tof, std::vector<double>  inv_ion_mob):
+    frameId(id), scans(std::move(scan)), mzs(std::move(mz)), intensities(std::move(intensity)), tofs(std::move(tof)), inv_ion_mobs(std::move(inv_ion_mob)){}
 
     // binning to a finite resolution
     TimsFramePL filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int minIntensity=1);
-    TimsFramePL toResolution(const int resolution);
+    TimsFramePL toResolution(int resolution);
      friend TimsFramePL operator+(const TimsFramePL &leftFrame, const TimsFramePL &rightFrame);
-    TimsFramePL fold(const int resolution, const int foldWidth);
+    TimsFramePL fold(int resolution, int foldWidth);
 
     // vectorize to an integer mz value
-    TimsFrameVectorizedPL vectorize(const int resolution);
+    TimsFrameVectorizedPL vectorize(int resolution);
 
     // get all spectra as map from scan to spectrum
-    std::map<int, MzSpectrum> spectra();
+    std::map<int, MzSpectrumPL> spectra();
 };
 
 // note: this function is not a member function!
@@ -124,7 +125,7 @@ TimsFramePL TimsFramePL::toResolution(const int resolution) {
         resI.push_back(value);
     }
 
-    return TimsFramePL(this->frameId, resS, resMz, resI, this->tofs, this->inv_ion_mobs);
+    return {this->frameId, resS, resMz, resI, this->tofs, this->inv_ion_mobs};
 }
 
 /**
@@ -157,7 +158,7 @@ TimsFramePL TimsFramePL::filterRanged(int scanMin, int scanMax, double mzMin, do
     }
 
     // This guards for empty return
-    if(retScan.size() > 0)
+    if(!retScan.empty())
         return TimsFramePL(this->frameId, retScan, retMz, retIntensity, {1}, {retInv});
 
     return TimsFramePL(this->frameId, {(scanMin + scanMax) / 2}, {(mzMin + mzMax) / 2}, {0}, {1}, {1.0});
@@ -198,7 +199,7 @@ TimsFramePL TimsFramePL::fold(const int resolution, const int width) {
         intensities.push_back(intensity);
     }
 
-    return TimsFramePL(frameId, scans, mzs, intensities, this->tofs, this->inv_ion_mobs);
+    return {frameId, scans, mzs, intensities, this->tofs, this->inv_ion_mobs};
 }
 
 /**
@@ -238,16 +239,16 @@ TimsFrameVectorizedPL TimsFramePL::vectorize(const int resolution) {
         retValue.push_back(value);
     }
 
-    return TimsFrameVectorizedPL(this->frameId, resolution, retScan, retIndex, retValue);
+    return {this->frameId, resolution, retScan, retIndex, retValue};
 }
 
 /**
  *
  * @return
  */
-std::map<int, MzSpectrum> TimsFramePL::spectra() {
+std::map<int, MzSpectrumPL> TimsFramePL::spectra() {
 
-    std::map<int, MzSpectrum> specMap;
+    std::map<int, MzSpectrumPL> specMap;
 
     for(size_t peak_id = 0; peak_id < this->scans.size(); peak_id++){
         auto scan = this->scans[peak_id];
@@ -258,7 +259,7 @@ std::map<int, MzSpectrum> TimsFramePL::spectra() {
             specMap[scan].intensity.push_back(i);
         }
         else {
-            specMap[scan] = MzSpectrum{this->frameId, static_cast<int>(scan), {mz}, {i}};
+            specMap[scan] = MzSpectrumPL{this->frameId, static_cast<int>(scan), {mz}, {i}};
         }
     }
 

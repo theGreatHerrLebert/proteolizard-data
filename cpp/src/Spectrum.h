@@ -6,34 +6,33 @@
 #define CPP_SPECTRUM_H
 
 #include <math.h>
-#include "../../include/eigen/Eigen/Dense"
-#include "../../include/eigen/Eigen/Sparse"
+
+#include <utility>
+#include "Eigen/Dense"
+#include "Eigen/Sparse"
 #include "VectorizedSpectrum.h"
 
 /**
  * container for single timsTOF mz spectra
  */
-struct MzSpectrum {
+struct MzSpectrumPL {
     // data members
-    int frameId, scanId; // rt coordinate
+    int frameId{}, scanId{}; // rt coordinate
     std::vector<double> mz; // vector of mz values
     std::vector<int> intensity; // vector of intensities
     
     // constructors
-    MzSpectrum(){}
-    MzSpectrum(int frame, int scan, std::vector<double> m, std::vector<int> i): frameId(frame), scanId(scan), mz(m), intensity(i){}
-    
-    // 
-    MzSpectrum toResolution(int resolution);
-    
-    // 
-    MzVector vectorize(int resolution);
+    MzSpectrumPL()= default;
+    MzSpectrumPL(int frame, int scan, std::vector<double> m, std::vector<int> i): frameId(frame), scanId(scan), mz(std::move(m)), intensity(std::move(i)){}
 
-    std::map<int, MzSpectrum> windows(double windowLength, bool overlapping, int minPeaks, int minIntensity);
-    friend MzSpectrum operator+(const MzSpectrum &leftSpec, const MzSpectrum &rightSpec);
+    MzSpectrumPL toResolution(int resolution);
+    MzVectorPL vectorize(int resolution);
+
+    std::map<int, MzSpectrumPL> windows(double windowLength, bool overlapping, int minPeaks, int minIntensity);
+    friend MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec);
 };
 
-MzSpectrum operator+(const MzSpectrum &leftSpec, MzSpectrum &rightSpec){
+MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec){
 
     std::map<double, int> sumMap;
 
@@ -70,7 +69,7 @@ MzSpectrum operator+(const MzSpectrum &leftSpec, MzSpectrum &rightSpec){
         retValues.push_back(value);   
    }
    
-   return MzSpectrum(leftSpec.frameId, leftSpec.scanId, retIndices, retValues);
+   return {leftSpec.frameId, leftSpec.scanId, retIndices, retValues};
 }
 
 /**
@@ -80,7 +79,7 @@ MzSpectrum operator+(const MzSpectrum &leftSpec, MzSpectrum &rightSpec){
  * @param sqr
  * @return
  */
-MzVector MzSpectrum::vectorize(int resolution) {
+MzVectorPL MzSpectrumPL::vectorize(int resolution) {
 
     auto tmp = this->toResolution(resolution);
 
@@ -97,7 +96,7 @@ MzVector MzSpectrum::vectorize(int resolution) {
     for(const auto i : tmp.intensity)
         values.push_back(i);
 
-    return MzVector{resolution, tmp.frameId, tmp.scanId, indices, values};
+    return MzVectorPL{resolution, tmp.frameId, tmp.scanId, indices, values};
 }
 
 /**
@@ -105,7 +104,7 @@ MzVector MzSpectrum::vectorize(int resolution) {
  * @param resolution
  * @return
  */
-MzSpectrum MzSpectrum::toResolution(int resolution) {
+MzSpectrumPL MzSpectrumPL::toResolution(int resolution) {
     
     std::map<int, int> intensityMap;
     double factor = pow(10.0, resolution);
@@ -130,7 +129,79 @@ MzSpectrum MzSpectrum::toResolution(int resolution) {
         resI.push_back(value);
     }
 
-    return MzSpectrum{this->frameId, this->scanId, resMz, resI};
+    return MzSpectrumPL{this->frameId, this->scanId, resMz, resI};
+}
+
+/**
+ * check if a given windowId is already present in map
+ * @param windowCollection collection to check
+ * @param windowId id to check for
+ * @return true if key is in map else false
+ */
+bool hasValue(std::map<int, MzSpectrumPL>& windowCollection, int windowId){
+    return windowCollection.count(windowId);
+}
+
+std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool overlapping, int minPeaks, int minIntensity)
+{
+    std::map<int, MzSpectrumPL> splits;
+
+    for(int i = 0; i < this->mz.size(); i++) {
+        // get mz and intensity
+        auto mmz = this->mz[i];
+        auto iintensity = this->intensity[i];
+        // calculate window key mz and intensity value should be sent to
+        auto tmpKey = int(floor(mmz / windowLength));
+
+        // given key is in map
+        if (hasValue(splits, tmpKey)) {
+            splits[tmpKey].mz.push_back(mmz);
+            splits[tmpKey].intensity.push_back(iintensity);
+        }
+            // given key is not in map
+        else {
+            std::vector<double> tmpMz = {mmz};
+            std::vector<int> tmpI = {iintensity};
+            splits[tmpKey] = MzSpectrumPL{this->frameId, this->scanId, tmpMz, tmpI};
+        }
+    }
+
+    // calculate grouping by offset
+    if(overlapping) {
+        std::map<int, MzSpectrumPL> splitsOffset;
+
+        for (int i = 0; i < this->mz.size(); i++) {
+            auto mmz = this->mz[i];
+            auto iintensity = this->intensity[i];
+            // calculate window key with offset mz and intensity value should be sent to
+            auto tmpKey = -int(floor(((mmz + windowLength / 2.0) / windowLength)));
+
+            // given key is in map
+            if (hasValue(splitsOffset, tmpKey)) {
+                splitsOffset[tmpKey].mz.push_back(mmz);
+                splitsOffset[tmpKey].intensity.push_back(iintensity);
+            }
+                // given key is not in map
+            else {
+                std::vector<double> tmpMz = {mmz};
+                std::vector<int> tmpI = {iintensity};
+                splitsOffset[tmpKey] = MzSpectrumPL{this->frameId, this->scanId, tmpMz, tmpI};
+            }
+        }
+        splits.merge(splitsOffset);
+    }
+
+    std::map<int, MzSpectrumPL> retSplits;
+
+    for(const auto& [bin, spectrum]: splits){
+        if(this->mz.size() >= minPeaks){
+            auto it = *max_element(std::begin(spectrum.intensity), std::end(spectrum.intensity));
+            if(it >= minIntensity)
+                retSplits[bin] = spectrum;
+        }
+    }
+
+    return retSplits;
 }
 
 #endif //CPP_SPECTRUM_H

@@ -6,25 +6,27 @@
 #define CPP_VECTORIZED_SPECTRUM_H
 
 #include <math.h>
+
+#include <utility>
 #include "../../include/eigen/Eigen/Dense"
 #include "../../include/eigen/Eigen/Sparse"
 
 /**
  * container for single vectorized timsTOF mz spectra
  */
-struct MzVector {
-    int resolution, frameId, scanId; // number of decimals spectrum was binned to
+struct MzVectorPL {
+    int resolution{}, frameId{}, scanId{}; // number of decimals spectrum was binned to
     std::vector<int> indices, values; // mz indices, can be seen as vector entries
     // constructors
-    MzVector(){}
-    MzVector(int res, int frame, int scan, std::vector<int> index, std::vector<int> value):
-    resolution(res), frameId(frame), scanId(scan), indices(index), values(value) {}
+    MzVectorPL()= default;
+    MzVectorPL(int res, int frame, int scan, std::vector<int> index, std::vector<int> value):
+    resolution(res), frameId(frame), scanId(scan), indices(std::move(index)), values(std::move(value)) {}
 
-    friend MzVector operator+(const MzVector &leftSpec, const MzVector &rightSpec);
+    friend MzVectorPL operator+(const MzVectorPL &leftSpec, const MzVectorPL &rightSpec);
 };
 
 // note: this function is not a member function!
-MzVector operator+(const MzVector &leftSpec, const MzVector &rightSpec){
+MzVectorPL operator+(const MzVectorPL &leftSpec, const MzVectorPL &rightSpec){
     
     // frames with differing resolution might not be added for now.
     if (leftSpec.resolution != rightSpec.resolution)
@@ -65,7 +67,7 @@ MzVector operator+(const MzVector &leftSpec, const MzVector &rightSpec){
         retValues.push_back(value);   
    }
 
-    return MzVector(leftSpec.frameId, leftSpec.scanId, leftSpec.resolution, retIndices, retValues);
+    return MzVectorPL(leftSpec.frameId, leftSpec.scanId, leftSpec.resolution, retIndices, retValues);
 }
 
 #endif //CPP_VECTORIZED_SPECTRUM_H
