@@ -99,8 +99,15 @@ class PyTimsDataHandle:
 
 
 class MzSpectrum:
-    def __init__(self, spec_pointer):
-        self.spec_ptr = spec_pointer
+
+    def __init__(self, spec_pointer, *args):
+
+        if len(args) > 0:
+            frame, scan, mz, intensity = args
+            self.spec_ptr = pl.MzSpectrumPL(frame, scan, mz, intensity)
+
+        else:
+            self.spec_ptr = spec_pointer
 
     def frame_id(self):
         return self.spec_ptr.getFrameId()

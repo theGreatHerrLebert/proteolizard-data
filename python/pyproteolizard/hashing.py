@@ -15,8 +15,11 @@ class TimsHasher:
         self.seed = seed
         self.resolution = resolution
 
-    def getMatrix(self):
+    def get_matrix(self):
         return self.__hash_ptr.getMatrixCopy()
+
+    def hash_entire_spectrum(self, spectrum: MzSpectrum):
+        return self.__hash_ptr.hashMzSpectrum(spectrum.spec_ptr)
 
     def hash_spectrum(self, spectrum: MzSpectrum,
                       min_peaks: int = 5,
@@ -24,8 +27,8 @@ class TimsHasher:
                       window_length: float = 10,
                       overlapping: bool = False,
                       restrict: bool = True):
-        bins, hashes = self.__hash_ptr.hashMzSpectrum(spectrum.spec_ptr, min_peaks, min_intensity,
-                                                      window_length, overlapping, restrict)
+        bins, hashes = self.__hash_ptr.hashMzSpectrumWindows(spectrum.spec_ptr, min_peaks, min_intensity,
+                                                             window_length, overlapping, restrict)
 
         return np.array([bins_to_mz(b, window_length) for b in bins]), hashes
 
@@ -36,7 +39,7 @@ class TimsHasher:
                    overlapping: bool = False,
                    restrict: bool = True):
 
-        scans, bins, hashes = self.__hash_ptr.hashTimsFrame(frame.frame_ptr, min_peaks, min_intensity,
-                                                            window_length, overlapping, restrict)
+        scans, bins, hashes = self.__hash_ptr.hashTimsFrameWindows(frame.frame_ptr, min_peaks, min_intensity,
+                                                                   window_length, overlapping, restrict)
 
         return scans, np.array([bins_to_mz(b, window_length) for b in bins]), hashes
