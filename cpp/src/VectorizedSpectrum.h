@@ -8,8 +8,8 @@
 #include <math.h>
 
 #include <utility>
-#include "../../include/eigen/Eigen/Dense"
-#include "../../include/eigen/Eigen/Sparse"
+#include "Eigen/Dense"
+#include "Eigen/Sparse"
 
 /**
  * container for single vectorized timsTOF mz spectra

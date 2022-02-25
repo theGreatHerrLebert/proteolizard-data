@@ -12,8 +12,8 @@
 #include <algorithm>
 #include <utility>
 #include "Spectrum.h"
-#include "../../include/eigen/Eigen/Dense"
-#include "../../include/eigen/Eigen/Sparse"
+#include "Eigen/Dense"
+#include "Eigen/Sparse"
 
 /**
  * a vectorized timsTOF frame

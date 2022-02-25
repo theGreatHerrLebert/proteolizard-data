@@ -162,6 +162,8 @@ struct TimsHashGenerator {
                                                               bool overlapping,
                                                               bool binRestricted);
 
+    std::vector<int> hashSpectrum(MzSpectrumPL &spectrum);
+
     std::pair<std::vector<int>, std::pair<std::vector<int>, std::vector<std::vector<int>>>> hashFrame(
             TimsFramePL &frame,
             int minPeaksPerWindow,
@@ -251,6 +253,17 @@ std::pair<std::vector<int>, std::pair<std::vector<int>, std::vector<std::vector<
     }
 
     return {retScans, {retBins, retHashes}};
+}
+
+std::vector<int> TimsHashGenerator::hashSpectrum(MzSpectrumPL &spectrum) {
+
+    int numRows = int(2000 * pow(10, this->resolution));
+
+    auto sparseVec = toSparseVector(spectrum.vectorize(this->resolution), numRows);
+    auto signumVec = calculateSignumVector(sparseVec, this->M, this->k, this->l);
+    auto keys = calculateKeys(signumVec, 1, false);
+
+    return keys;
 }
 
 #endif //SRC_HASHING_H

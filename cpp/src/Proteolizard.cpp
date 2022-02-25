@@ -213,10 +213,13 @@ PYBIND11_MODULE(libproteolizard, h) {
             // -------------- CONSTRUCTOR ---------------
             .def(py::init<int, int, int, int>())
 
-                    // -------------- MEMBER ---------------
+            // -------------- MEMBER ---------------
             .def("getMatrixCopy", &TimsHashGenerator::getMatrixCopy)
 
-            .def("hashMzSpectrum", [](
+            .def("hashMzSpectrum", [](TimsHashGenerator& self, MzSpectrumPL &spectrum){
+                return py::array(py::cast(self.hashSpectrum(spectrum)));
+            })
+            .def("hashMzSpectrumWindows", [](
                     TimsHashGenerator &self,
                     MzSpectrumPL &spectrum,
                     int minPeaks,
@@ -230,7 +233,7 @@ PYBIND11_MODULE(libproteolizard, h) {
 
                 return py::make_tuple(py::array(py::cast(p.first)), py::array(py::cast(p.second)));
             })
-            .def("hashTimsFrame", [](TimsHashGenerator &self, TimsFramePL &frame, int minPeaks,
+            .def("hashTimsFrameWindows", [](TimsHashGenerator &self, TimsFramePL &frame, int minPeaks,
                                      int minIntensity,
                                      double windowLength,
                                      bool overlapping,

@@ -13,8 +13,8 @@
 #include <utility>
 #include "Spectrum.h"
 #include "VectorizedFrame.h"
-#include "../../include/eigen/Eigen/Dense"
-#include "../../include/eigen/Eigen/Sparse"
+#include "Eigen/Dense"
+#include "Eigen/Sparse"
 
 /**
  * same container but trying to provide cleaner OOP interface
