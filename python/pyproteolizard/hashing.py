@@ -1,5 +1,10 @@
+import numpy as np
 import libproteolizard as pl
-# from data import MzSpectrum
+from pyproteolizard.data import MzSpectrum, TimsFrame
+
+
+def bins_to_mz(mz_bin, win_len):
+    return np.abs(mz_bin) * win_len + (int(mz_bin < 0) * (0.5 * win_len))
 
 
 class TimsHasher:
@@ -13,10 +18,25 @@ class TimsHasher:
     def getMatrix(self):
         return self.__hash_ptr.getMatrixCopy()
 
-    def hash_spectrum(self, spectrum,
+    def hash_spectrum(self, spectrum: MzSpectrum,
                       min_peaks: int = 5,
                       min_intensity: int = 150,
-                      window_length = 10,
+                      window_length: float = 10,
                       overlapping: bool = False,
                       restrict: bool = True):
-        return self.__hash_ptr.hashMzSpectrum(spectrum.spec_ptr, min_peaks, min_intensity, window_length, overlapping, restrict)
+        bins, hashes = self.__hash_ptr.hashMzSpectrum(spectrum.spec_ptr, min_peaks, min_intensity,
+                                                      window_length, overlapping, restrict)
+
+        return np.array([bins_to_mz(b, window_length) for b in bins]), hashes
+
+    def hash_frame(self, frame: TimsFrame,
+                   min_peaks: int = 5,
+                   min_intensity: int = 150,
+                   window_length: float = 10,
+                   overlapping: bool = False,
+                   restrict: bool = True):
+
+        scans, bins, hashes = self.__hash_ptr.hashTimsFrame(frame.frame_ptr, min_peaks, min_intensity,
+                                                            window_length, overlapping, restrict)
+
+        return scans, np.array([bins_to_mz(b, window_length) for b in bins]), hashes

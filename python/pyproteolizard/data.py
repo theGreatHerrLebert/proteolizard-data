@@ -124,10 +124,6 @@ class MzSpectrum:
         """
         return self.spec_ptr.toResolution(resolution)
 
-    def to_windows(self, window_length: float = 10, overlapping: bool = False, min_peaks: int = 5, min_intensity: int = 150):
-        bins, w = self.spec_ptr.windows(window_length, overlapping, min_peaks, min_intensity)
-        return bins, [MzSpectrum(x) for x in w]
-
 
 class MzVector:
     def __init__(self, vec_pointer):
@@ -178,56 +174,56 @@ class VectorizedTimsFrame:
         return [MzVector(s) for s in self.__frame.getSpectra()]
 
     def __add__(self, other):
-        return VectorizedTimsFrame(self.__frame + other.__frame)
+        return VectorizedTimsFrame(self.__frame + other.frame_ptr)
 
 
 class TimsFrame:
     def __init__(self, frame_pointer):
-        self.__frame = frame_pointer
+        self.frame_ptr = frame_pointer
 
     def frame_id(self):
-        return self.__frame.getFrameId()
+        return self.frame_ptr.getFrameId()
 
     def scan(self):
-        return self.__frame.getScans()
+        return self.frame_ptr.getScans()
 
     def mz(self):
-        return self.__frame.getMzs()
+        return self.frame_ptr.getMzs()
 
     def intensity(self):
-        return self.__frame.getIntensities()
+        return self.frame_ptr.getIntensities()
 
     def tof(self):
-        return self.__frame.getTofs()
+        return self.frame_ptr.getTofs()
 
     def invers_ion_mobility(self):
-        return self.__frame.getInverseMobilities()
+        return self.frame_ptr.getInverseMobilities()
 
     def __add__(self, other):
-        return TimsFrame(self.__frame + other.__frame)
+        return TimsFrame(self.frame_ptr + other.frame_ptr)
 
     def to_resolution(self, resolution=2):
         """
         :param resolution:
         :return:
         """
-        return TimsFrame(self.__frame.toResolution(resolution))
+        return TimsFrame(self.frame_ptr.toResolution(resolution))
 
     def vectorized(self, resolution=2):
         """
         :param resolution:
         :return:
         """
-        return VectorizedTimsFrame(self.__frame.vectorize(resolution))
+        return VectorizedTimsFrame(self.frame_ptr.vectorize(resolution))
 
     def filter_ranged(self, scan_min=int(0.0), scan_max=int(1e3), mz_min=0.0, mz_max=2e3, intensity_min=50):
-        return TimsFrame(self.__frame.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
+        return TimsFrame(self.frame_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
 
     def fold(self, resolution=2, width=4):
-        return TimsFrame(self.__frame.fold(resolution, width))
+        return TimsFrame(self.frame_ptr.fold(resolution, width))
 
     def get_spectra(self):
-        spec_ptrs = self.__frame.getMzSpectra()
+        spec_ptrs = self.frame_ptr.getMzSpectra()
         return [MzSpectrum(ptr) for ptr in spec_ptrs]
 
 
