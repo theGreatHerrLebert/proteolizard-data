@@ -43,6 +43,8 @@ struct TimsFramePL {
 
     // get all spectra as map from scan to spectrum
     std::map<int, MzSpectrumPL> spectra();
+
+    std::vector<MzSpectrumPL> exportSpectra();
 };
 
 // note: this function is not a member function!
@@ -264,6 +266,18 @@ std::map<int, MzSpectrumPL> TimsFramePL::spectra() {
     }
 
     return specMap;
+}
+
+std::vector<MzSpectrumPL> TimsFramePL::exportSpectra() {
+
+    auto spectra = this->spectra();
+    std::vector<MzSpectrumPL> ret;
+    ret.reserve(spectra.size());
+
+    for(auto&[key, value]: spectra)
+        ret.push_back(value);
+
+    return ret;
 }
 
 #endif //CPP_FRAME_H

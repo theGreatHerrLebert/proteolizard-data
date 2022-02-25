@@ -16,6 +16,7 @@
  * container for single timsTOF mz spectra
  */
 struct MzSpectrumPL {
+
     // data members
     int frameId{}, scanId{}; // rt coordinate
     std::vector<double> mz; // vector of mz values
@@ -23,12 +24,16 @@ struct MzSpectrumPL {
     
     // constructors
     MzSpectrumPL()= default;
-    MzSpectrumPL(int frame, int scan, std::vector<double> m, std::vector<int> i): frameId(frame), scanId(scan), mz(std::move(m)), intensity(std::move(i)){}
+    MzSpectrumPL(int frame, int scan, std::vector<double> m, std::vector<int> i): frameId(frame), scanId(scan),
+    mz(std::move(m)), intensity(std::move(i)){}
 
     MzSpectrumPL toResolution(int resolution);
     MzVectorPL vectorize(int resolution);
 
     std::map<int, MzSpectrumPL> windows(double windowLength, bool overlapping, int minPeaks, int minIntensity);
+    std::tuple<std::vector<int>, std::vector<MzSpectrumPL>> exportWindows(double windowLength, bool overlapping,
+                                                                          int minPeaks, int minIntensity);
+
     friend MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec);
 };
 
@@ -202,6 +207,27 @@ std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool over
     }
 
     return retSplits;
+}
+
+std::tuple<std::vector<int>, std::vector<MzSpectrumPL>> MzSpectrumPL::exportWindows(
+        double windowLength,
+        bool overlapping,
+        int minPeaks,
+        int minIntensity){
+
+    auto windowMap = this->windows(windowLength, overlapping, minPeaks, minIntensity);
+
+    std::vector<int> retBins;
+    retBins.reserve(windowMap.size());
+    std::vector<MzSpectrumPL> retWindows;
+    retWindows.reserve(windowMap.size());
+
+    for(auto& [k, v]: windowMap){
+        retBins.push_back(k);
+        retWindows.push_back(v);
+    }
+
+    return {retBins, retWindows};
 }
 
 #endif //CPP_SPECTRUM_H

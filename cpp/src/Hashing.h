@@ -155,23 +155,33 @@ struct TimsHashGenerator {
 
     const Eigen::MatrixXd &getMatrixCopy() { return M; }
 
-    std::vector<std::pair<int, std::vector<int>>> hashSpectrum(MzSpectrumPL &spectrum,
+    std::pair<std::vector<int>, std::vector<std::vector<int>>> hashSpectrum(MzSpectrumPL &spectrum,
                                                               int minPeaksPerWindow,
                                                               int minIntensity,
                                                               double  windowLength,
                                                               bool overlapping,
                                                               bool binRestricted);
 
+    std::pair<std::vector<int>, std::pair<std::vector<int>, std::vector<std::vector<int>>>> hashFrame(
+            TimsFramePL &frame,
+            int minPeaksPerWindow,
+            int minIntensity,
+            double windowLength,
+            bool overlapping,
+            bool binRestricted);
 };
 
-std::vector<std::pair<int, std::vector<int>>> TimsHashGenerator::hashSpectrum(MzSpectrumPL &spectrum,
-                                                                             int minPeaksPerWindow,
-                                                                             int minIntensity,
-                                                                             double windowLength,
-                                                                             bool overlapping,
-                                                                             bool binRestricted) {
 
-    const auto windows = spectrum.windows(windowLength, overlapping, minPeaksPerWindow, minIntensity);
+
+std::pair<std::vector<int>, std::vector<std::vector<int>>> TimsHashGenerator::hashSpectrum(
+        MzSpectrumPL &spectrum,
+        int minPeaksPerWindow,
+        int minIntensityPerWindow,
+        double windowLength,
+        bool overlapping,
+        bool binRestricted) {
+
+    const auto windows = spectrum.windows(windowLength, overlapping, minPeaksPerWindow, minIntensityPerWindow);
     std::vector<std::pair<int, std::vector<int>>> retVec;
     retVec.resize(windows.size());
 
@@ -186,8 +196,61 @@ std::vector<std::pair<int, std::vector<int>>> TimsHashGenerator::hashSpectrum(Mz
     };
 
     std::transform(std::execution::par_unseq, windows.begin(), windows.end(), retVec.begin(), hashWindow);
-    return  retVec;
+
+    std::vector<int> retBins;
+    std::vector<std::vector<int>> retHashes;
+
+    retBins.reserve(retVec.size());
+    retHashes.reserve(retVec.size());
+
+    for(auto & p : retVec){
+        retBins.push_back(p.first);
+        retHashes.push_back(p.second);
+    }
+
+    return  {retBins, retHashes};
 }
 
+std::pair<std::vector<int>, std::pair<std::vector<int>, std::vector<std::vector<int>>>> TimsHashGenerator::hashFrame(
+        TimsFramePL &frame,
+        int minPeaksPerWindow,
+        int minIntensity,
+        double windowLength,
+        bool overlapping,
+        bool binRestricted){
+
+    auto spectra = frame.spectra();
+
+    std::vector<std::pair<int, std::pair<std::vector<int>, std::vector<std::vector<int>>>>> retVec;
+
+    retVec.resize(spectra.size());
+
+    auto hashSpectrum = [&binRestricted, &minPeaksPerWindow, &minIntensity, &windowLength,
+                       &overlapping, this] (std::pair<const int, MzSpectrumPL> p)
+                               -> std::pair<const int, std::pair<std::vector<int>, std::vector<std::vector<int>>>> {
+        auto hashedSpectrum = this->hashSpectrum(
+                p.second,
+                minPeaksPerWindow,
+                minIntensity,
+                windowLength,
+                overlapping,
+                binRestricted);
+        return {p.first, hashedSpectrum};
+    };
+
+    std::transform(std::execution::par_unseq, spectra.begin(), spectra.end(), retVec.begin(), hashSpectrum);
+
+    std::vector<int> retScans;
+    std::vector<int> retBins;
+    std::vector<std::vector<int>> retHashes;
+
+    for(auto& [scan, p]: retVec){
+        retScans.insert(retScans.end(), p.first.size(), scan);
+        retBins.insert(retBins.end(), p.first.begin(), p.first.end());
+        retHashes.insert(retHashes.end(), p.second.begin(), p.second.end());
+    }
+
+    return {retScans, {retBins, retHashes}};
+}
 
 #endif //SRC_HASHING_H
