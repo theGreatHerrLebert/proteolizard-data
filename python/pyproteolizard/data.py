@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 import libproteolizard as pl
 import opentims_bruker_bridge as obb
+import tensorflow as tf
 
 
 class PyTimsDataHandle:
@@ -129,7 +130,11 @@ class MzSpectrum:
         :param resolution:
         :return:
         """
-        return self.spec_ptr.toResolution(resolution)
+        return MzVector(self.spec_ptr.vectorize(resolution))
+
+    def windows(self, window_length=10, overlapping=True, min_peaks=3, min_intensity=50):
+        bins, windows = self.spec_ptr.windows(window_length, overlapping, min_peaks, min_intensity)
+        return bins, [MzSpectrum(s) for s in windows]
 
 
 class MzVector:
@@ -233,6 +238,19 @@ class TimsFrame:
         spec_ptrs = self.frame_ptr.getMzSpectra()
         return [MzSpectrum(ptr) for ptr in spec_ptrs]
 
+    def dense_windows(self, resolution=1, min_peaks=5, min_intensity=100, window_length=10, overlapping=True):
+        return self.frame_ptr.getDenseWindows(resolution, min_peaks, min_intensity, window_length, overlapping)
+
+    def get_hashing_blocks(self, resolution=1, min_peaks=3, min_intensity=50, window_length=10, overlapping=True):
+        return self.frame_ptr.getHashingBlocks(resolution, min_peaks, min_intensity, window_length, overlapping)
+
+    def get_window_tensor(self, resolution=1, min_peaks=3, min_intensity=50, window_length=10, overlapping=True):
+        w_index, scans, bins, indices, values = self.get_hashing_blocks(resolution, min_peaks, min_intensity,
+                                                                        window_length, overlapping)
+        tensor = tf.sparse.SparseTensor(indices=list(zip(w_index, indices)), values=values.astype(np.float32),
+                                        dense_shape=(len(set(w_index)), 101))
+
+        return tf.transpose(tf.sparse.to_dense(tensor))
 
 class TimsSlice:
     def __init__(self, slice_ptr):

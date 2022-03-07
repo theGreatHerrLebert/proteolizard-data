@@ -97,8 +97,6 @@ std::vector<int> calculateKeys(const std::vector<std::vector<bool>> &hashes, int
  * @param l number of ORs
  * @return k vectors of l bits
  */
-
-
 std::vector<std::vector<bool>> calculateSignumVector(const Eigen::SparseVector<double>& sparseSpectrumVector,
                                                      const Eigen::MatrixXd& M,
                                                      int k,
@@ -134,7 +132,7 @@ std::vector<std::vector<bool>> calculateSignumVector(const Eigen::SparseVector<d
     return retVec;
 }
 
-auto initMatrix = [](int k, int l, int seed, int res) -> Eigen::MatrixXd {
+auto initMatrix = [](int k, int l, int seed, int res, int lenDalton) -> Eigen::MatrixXd {
 
     std::default_random_engine generator(seed);
     std::normal_distribution<double> distribution(0, 1);
@@ -142,7 +140,7 @@ auto initMatrix = [](int k, int l, int seed, int res) -> Eigen::MatrixXd {
 
     int resFactor = int(pow(10, res));
 
-    return Eigen::MatrixXd::NullaryExpr(k * l, 2000 * resFactor, normal);
+    return Eigen::MatrixXd::NullaryExpr(k * l, lenDalton * resFactor + 1, normal);
 };
 
 
@@ -151,7 +149,8 @@ struct TimsHashGenerator {
     int seed, resolution, k, l;
     const Eigen::MatrixXd M;
 
-    TimsHashGenerator(int kk, int ll, int s, int r): k(kk), l(ll), seed(s), resolution(r), M(initMatrix(kk, ll, s, r)){}
+    TimsHashGenerator(int kk, int ll, int s, int r, int lenDalton): k(kk), l(ll), seed(s), resolution(r),
+    M(initMatrix(kk, ll, s, r, lenDalton)){}
 
     const Eigen::MatrixXd &getMatrixCopy() { return M; }
 
@@ -184,6 +183,7 @@ std::pair<std::vector<int>, std::vector<std::vector<int>>> TimsHashGenerator::ha
         bool binRestricted) {
 
     const auto windows = spectrum.windows(windowLength, overlapping, minPeaksPerWindow, minIntensityPerWindow);
+
     std::vector<std::pair<int, std::vector<int>>> retVec;
     retVec.resize(windows.size());
 

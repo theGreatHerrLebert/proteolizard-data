@@ -43,7 +43,8 @@ PYBIND11_MODULE(libproteolizard, h) {
             })
             .def("windows",
                  [](MzSpectrumPL &self, double windowLength, bool overlapping, int minPeaks, int minIntensity) {
-                     return py::make_tuple(self.exportWindows(windowLength, overlapping, minPeaks, minIntensity));
+                auto p = self.exportWindows(windowLength, overlapping, minPeaks, minIntensity);
+                     return py::make_tuple(py::array(py::cast(p.first)), p.second);
                  });
     // ---------------- CLASS VECTORIZED-SPECTRUM ------------
     py::class_<MzVectorPL>(h, "MzVectorPL")
@@ -102,11 +103,32 @@ PYBIND11_MODULE(libproteolizard, h) {
             .def("fold", [](TimsFramePL &self, int resolution, int width) {
                 return self.fold(resolution, width);
             })
+
+            .def("getDenseWindows", [](TimsFramePL &self, int resolution, int minPeaksPerWindow, int minIntensity,
+                                       double windowLength, bool overlapping){
+
+                return self.denseWindowMatrix(resolution, minPeaksPerWindow, minIntensity, windowLength, overlapping);
+            })
+
             .def("filterRanged",
                  [](TimsFramePL &self, int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin) {
                      return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
                  })
             .def(py::self + py::self)
+            .def("getHashingBlocks", [](TimsFramePL &self, int resolution,
+                                     int minPeaksPerWindow,
+                                     int minIntensity,
+                                     double windowLength,
+                                     bool overlapping){
+
+                auto t = self.getHashingBlocks(resolution, minPeaksPerWindow, minIntensity, windowLength, overlapping);
+
+                return py::make_tuple(py::array(py::cast(t.first)),
+                                      py::array(py::cast(t.second.first.first)),
+                                      py::array(py::cast(t.second.first.second)),
+                                      py::array(py::cast(t.second.second.first)),
+                                      py::array(py::cast(t.second.second.second)));
+            })
             .def("getMzSpectra", [](TimsFramePL &self) {
                 return self.exportSpectra();
             });
@@ -211,7 +233,7 @@ PYBIND11_MODULE(libproteolizard, h) {
     py::class_<TimsHashGenerator>(h, "TimsHashGenerator")
 
             // -------------- CONSTRUCTOR ---------------
-            .def(py::init<int, int, int, int>())
+            .def(py::init<int, int, int, int, int>())
 
             // -------------- MEMBER ---------------
             .def("getMatrixCopy", &TimsHashGenerator::getMatrixCopy)

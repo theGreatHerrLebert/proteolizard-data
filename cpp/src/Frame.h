@@ -16,6 +16,28 @@
 #include "Eigen/Dense"
 #include "Eigen/Sparse"
 
+#include <algorithm>
+#include <execution>
+
+/**
+ * create eigen sparse vector from vectorized mz spectrum
+ * @param mzVector : vectorized mz spectrum to convert
+ * @param numRows : dimensionality of vector
+ * @return : a sparse eigen vector suited for fast vectorized operations
+ */
+Eigen::MatrixXd toDenseEigen(const MzVectorPL& mzVector, int numRows){
+
+    Eigen::SparseMatrix<double> sparseVec = Eigen::SparseMatrix<double>(numRows, 1);
+    std::vector<Eigen::Triplet<double>> tripletList;
+    tripletList.reserve(mzVector.indices.size());
+
+    for(std::size_t i = 0; i < mzVector.indices.size(); i++)
+        tripletList.emplace_back(mzVector.indices[i], 0, mzVector.values[i]);
+
+    sparseVec.setFromTriplets(tripletList.begin(), tripletList.end());
+    return sparseVec.toDense();
+}
+
 /**
  * same container but trying to provide cleaner OOP interface
  */
@@ -45,6 +67,13 @@ struct TimsFramePL {
     std::map<int, MzSpectrumPL> spectra();
 
     std::vector<MzSpectrumPL> exportSpectra();
+
+    std::pair<std::vector<int>, std::pair<std::pair<std::vector<int>, std::vector<int>>,std::pair<std::vector<int>,
+    std::vector<int>>>> getHashingBlocks(int resolution, int minPeaksPerWindow, int minIntensity,
+                                        double windowLength, bool overlapping);
+
+    Eigen::MatrixXd denseWindowMatrix(int resolution, int minPeaksPerWindow,
+                           int minIntensity, double windowLength, bool overlapping);
 };
 
 // note: this function is not a member function!
@@ -278,6 +307,89 @@ std::vector<MzSpectrumPL> TimsFramePL::exportSpectra() {
         ret.push_back(value);
 
     return ret;
+}
+
+Eigen::MatrixXd TimsFramePL::denseWindowMatrix(int resolution, int minPeaksPerWindow, int minIntensity,
+                                               double windowLength, bool overlapping) {
+
+    // split frame into spectra
+    auto spectra = this->spectra();
+    auto numRows = int(round(2000 * pow(10, resolution)));
+    std::vector<Eigen::MatrixXd> vec;
+
+    for(auto &spectrum: spectra){
+        auto windows = spectrum.second.windows(windowLength, overlapping, minPeaksPerWindow, minIntensity);
+        for(auto &w: windows){
+            auto v = toDenseEigen(w.second.vectorize(resolution), numRows);
+            vec.push_back(v);
+        }
+    }
+
+    auto numColumns = vec.size();
+
+    Eigen::MatrixXd retMatrix(numRows, numColumns);
+
+    for(std::size_t i = 0; i < vec.size(); i++){
+        retMatrix.col(i) = vec[i];
+    }
+
+    return retMatrix;
+}
+
+std::pair<std::vector<int>, std::pair<std::pair<std::vector<int>, std::vector<int>>, std::pair<std::vector<int>,
+        std::vector<int>>>> TimsFramePL::getHashingBlocks(int resolution,
+                                                         int minPeaksPerWindow,
+                                                         int minIntensity,
+                                                         double windowLength,
+                                                         bool overlapping) {
+
+    auto spectra = this->spectra();
+    std::vector<int> retScan, retBin, retWindowIndex, retIndices, retValues;
+
+    retScan.reserve(70000);
+    retBin.reserve(70000);
+    retWindowIndex.reserve(70000);
+    retIndices.reserve(70000);
+    retValues.reserve(70000);
+
+    int windowCounter = 0;
+
+    for(const auto &[scan, spectrum]: spectra){
+
+        auto windows = spectrum.windows(windowLength, overlapping,
+                                        minPeaksPerWindow, minIntensity);
+
+        for(const auto& [bin, window]: windows){
+
+            int offset = 0;
+
+            if (bin > 0) {
+                offset = pow(10, resolution) * bin * windowLength;
+            }
+            else {
+                offset = pow(10, resolution) * ((-bin) * windowLength - (windowLength / 2));
+            }
+
+            auto vectorizedWindow = window.vectorize(resolution);
+
+            for(std::size_t i = 0; i < vectorizedWindow.indices.size(); i++){
+                auto index = vectorizedWindow.indices[i];
+                auto zeroIndex = index - offset;
+                auto value = vectorizedWindow.values[i];
+                retIndices.push_back(zeroIndex);
+                retValues.push_back(value);
+            }
+
+            retScan.insert(retScan.end(), vectorizedWindow.indices.size(), scan);
+            retBin.insert(retBin.end(),vectorizedWindow.indices.size(), bin);
+            retWindowIndex.insert(retWindowIndex.end(), vectorizedWindow.indices.size(), windowCounter);
+            windowCounter++;
+        }
+
+    }
+
+
+    return {retWindowIndex, {{retScan, retBin}, {retIndices, retValues}}};
 }
 
 #endif //CPP_FRAME_H

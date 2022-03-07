@@ -27,11 +27,11 @@ struct MzSpectrumPL {
     MzSpectrumPL(int frame, int scan, std::vector<double> m, std::vector<int> i): frameId(frame), scanId(scan),
     mz(std::move(m)), intensity(std::move(i)){}
 
-    MzSpectrumPL toResolution(int resolution);
-    MzVectorPL vectorize(int resolution);
+    MzSpectrumPL toResolution(int resolution) const;
+    MzVectorPL vectorize(int resolution) const;
 
-    std::map<int, MzSpectrumPL> windows(double windowLength, bool overlapping, int minPeaks, int minIntensity);
-    std::tuple<std::vector<int>, std::vector<MzSpectrumPL>> exportWindows(double windowLength, bool overlapping,
+    std::map<int, MzSpectrumPL> windows(double windowLength, bool overlapping, int minPeaks, int minIntensity) const;
+    std::pair<std::vector<int>, std::vector<MzSpectrumPL>> exportWindows(double windowLength, bool overlapping,
                                                                           int minPeaks, int minIntensity);
 
     friend MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec);
@@ -84,7 +84,7 @@ MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSp
  * @param sqr
  * @return
  */
-MzVectorPL MzSpectrumPL::vectorize(int resolution) {
+MzVectorPL MzSpectrumPL::vectorize(int resolution) const{
 
     auto tmp = this->toResolution(resolution);
 
@@ -109,7 +109,7 @@ MzVectorPL MzSpectrumPL::vectorize(int resolution) {
  * @param resolution
  * @return
  */
-MzSpectrumPL MzSpectrumPL::toResolution(int resolution) {
+MzSpectrumPL MzSpectrumPL::toResolution(int resolution) const{
     
     std::map<int, int> intensityMap;
     double factor = pow(10.0, resolution);
@@ -147,7 +147,7 @@ bool hasValue(std::map<int, MzSpectrumPL>& windowCollection, int windowId){
     return windowCollection.count(windowId);
 }
 
-std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool overlapping, int minPeaks, int minIntensity)
+std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool overlapping, int minPeaks, int minIntensity) const
 {
     std::map<int, MzSpectrumPL> splits;
 
@@ -209,7 +209,7 @@ std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool over
     return retSplits;
 }
 
-std::tuple<std::vector<int>, std::vector<MzSpectrumPL>> MzSpectrumPL::exportWindows(
+std::pair<std::vector<int>, std::vector<MzSpectrumPL>> MzSpectrumPL::exportWindows(
         double windowLength,
         bool overlapping,
         int minPeaks,
@@ -222,7 +222,7 @@ std::tuple<std::vector<int>, std::vector<MzSpectrumPL>> MzSpectrumPL::exportWind
     std::vector<MzSpectrumPL> retWindows;
     retWindows.reserve(windowMap.size());
 
-    for(auto& [k, v]: windowMap){
+    for(const auto& [k, v]: windowMap){
         retBins.push_back(k);
         retWindows.push_back(v);
     }

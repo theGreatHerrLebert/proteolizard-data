@@ -8,12 +8,13 @@ def bins_to_mz(mz_bin, win_len):
 
 
 class TimsHasher:
-    def __init__(self, trials, len_trial, seed, resolution):
-        self.__hash_ptr = pl.TimsHashGenerator(trials, len_trial, seed, resolution)
+    def __init__(self, trials, len_trial, seed, resolution, num_dalton):
+        self.__hash_ptr = pl.TimsHashGenerator(trials, len_trial, seed, resolution, num_dalton)
         self.trails = trials
         self.len_trial = len_trial
         self.seed = seed
         self.resolution = resolution
+        self.num_dalton = num_dalton
 
     def get_matrix(self):
         return self.__hash_ptr.getMatrixCopy()
