@@ -190,8 +190,14 @@ class VectorizedTimsFrame:
 
 
 class TimsFrame:
-    def __init__(self, frame_pointer):
-        self.frame_ptr = frame_pointer
+    def __init__(self, frame_pointer, *args):
+
+        if len(args) > 0:
+            frame_id, scan, mz, intensity, tof, inv_ion_mob = args
+            self.frame_ptr = pl.TimsFrame(frame_id, scan, mz, intensity, tof, inv_ion_mob)
+
+        else:
+            self.frame_ptr = frame_pointer
 
     def frame_id(self):
         return self.frame_ptr.getFrameId()
