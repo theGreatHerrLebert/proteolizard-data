@@ -103,13 +103,11 @@ PYBIND11_MODULE(libproteolizard, h) {
             .def("fold", [](TimsFramePL &self, int resolution, int width) {
                 return self.fold(resolution, width);
             })
-
             .def("getDenseWindows", [](TimsFramePL &self, int resolution, int minPeaksPerWindow, int minIntensity,
                                        double windowLength, bool overlapping){
 
                 return self.denseWindowMatrix(resolution, minPeaksPerWindow, minIntensity, windowLength, overlapping);
             })
-
             .def("filterRanged",
                  [](TimsFramePL &self, int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin) {
                      return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
@@ -123,11 +121,11 @@ PYBIND11_MODULE(libproteolizard, h) {
 
                 auto t = self.getHashingBlocks(resolution, minPeaksPerWindow, minIntensity, windowLength, overlapping);
 
-                return py::make_tuple(py::array(py::cast(t.first)),
-                                      py::array(py::cast(t.second.first.first)),
-                                      py::array(py::cast(t.second.first.second)),
-                                      py::array(py::cast(t.second.second.first)),
-                                      py::array(py::cast(t.second.second.second)));
+                return py::make_tuple(t.counter, py::array(py::cast(t.rowIndex)),
+                                      py::array(py::cast(t.scan)),
+                                      py::array(py::cast(t.bin)),
+                                      py::array(py::cast(t.indices)),
+                                      py::array(py::cast(t.values)));
             })
             .def("getMzSpectra", [](TimsFramePL &self) {
                 return self.exportSpectra();

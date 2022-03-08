@@ -208,7 +208,7 @@ class TimsFrame:
     def tof(self):
         return self.frame_ptr.getTofs()
 
-    def invers_ion_mobility(self):
+    def inverse_ion_mobility(self):
         return self.frame_ptr.getInverseMobilities()
 
     def __add__(self, other):
@@ -244,13 +244,17 @@ class TimsFrame:
     def get_hashing_blocks(self, resolution=1, min_peaks=3, min_intensity=50, window_length=10, overlapping=True):
         return self.frame_ptr.getHashingBlocks(resolution, min_peaks, min_intensity, window_length, overlapping)
 
-    def get_window_tensor(self, resolution=1, min_peaks=3, min_intensity=50, window_length=10, overlapping=True):
-        w_index, scans, bins, indices, values = self.get_hashing_blocks(resolution, min_peaks, min_intensity,
-                                                                        window_length, overlapping)
-        tensor = tf.sparse.SparseTensor(indices=list(zip(w_index, indices)), values=values.astype(np.float32),
-                                        dense_shape=(len(set(w_index)), 101))
+    def hashing_block_as_dense_tensor(self, resolution=1, min_peaks=3, min_intensity=50, window_length=10,
+                                      overlapping=True):
 
-        return tf.transpose(tf.sparse.to_dense(tensor))
+        c, wi, scan, mz_bin, i, v = self.frame_ptr.getHashingBlocks(resolution, min_peaks, min_intensity, window_length,
+                                                                    overlapping)
+
+        len_mz_vector = int(np.power(10, resolution) * window_length)
+
+        st = tf.sparse.SparseTensor(indices=np.c_[wi, i], values=v.astype(np.float32), dense_shape=(c, len_mz_vector + 1))
+        return tf.transpose(tf.sparse.to_dense(st))
+
 
 class TimsSlice:
     def __init__(self, slice_ptr):

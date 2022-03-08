@@ -7,7 +7,7 @@
 
 #include <tuple>
 #include <string>
-#include <math.h>
+#include <cmath>
 #include <map>
 #include <algorithm>
 #include <utility>
@@ -37,6 +37,13 @@ Eigen::MatrixXd toDenseEigen(const MzVectorPL& mzVector, int numRows){
     sparseVec.setFromTriplets(tripletList.begin(), tripletList.end());
     return sparseVec.toDense();
 }
+
+struct HashBlock{
+    int counter;
+    std::vector<int> rowIndex, scan, bin, indices, values;
+    HashBlock(int c, std::vector<int> ri, std::vector<int> s, std::vector<int> b, std::vector<int> i, std::vector<int> v):
+    counter(c), rowIndex(std::move(ri)), scan(std::move(s)), bin(std::move(b)), indices(std::move(i)), values(std::move(v)){}
+};
 
 /**
  * same container but trying to provide cleaner OOP interface
@@ -68,9 +75,7 @@ struct TimsFramePL {
 
     std::vector<MzSpectrumPL> exportSpectra();
 
-    std::pair<std::vector<int>, std::pair<std::pair<std::vector<int>, std::vector<int>>,std::pair<std::vector<int>,
-    std::vector<int>>>> getHashingBlocks(int resolution, int minPeaksPerWindow, int minIntensity,
-                                        double windowLength, bool overlapping);
+    HashBlock getHashingBlocks(int resolution,int minPeaksPerWindow,int minIntensity,double windowLength,bool overlapping);
 
     Eigen::MatrixXd denseWindowMatrix(int resolution, int minPeaksPerWindow,
                            int minIntensity, double windowLength, bool overlapping);
@@ -336,32 +341,30 @@ Eigen::MatrixXd TimsFramePL::denseWindowMatrix(int resolution, int minPeaksPerWi
     return retMatrix;
 }
 
-std::pair<std::vector<int>, std::pair<std::pair<std::vector<int>, std::vector<int>>, std::pair<std::vector<int>,
-        std::vector<int>>>> TimsFramePL::getHashingBlocks(int resolution,
-                                                         int minPeaksPerWindow,
-                                                         int minIntensity,
-                                                         double windowLength,
-                                                         bool overlapping) {
+HashBlock TimsFramePL::getHashingBlocks(
+        int resolution,
+        int minPeaksPerWindow,
+        int minIntensity,
+        double windowLength,
+        bool overlapping) {
 
-    auto spectra = this->spectra();
-    std::vector<int> retScan, retBin, retWindowIndex, retIndices, retValues;
+    auto createWindows =
+            [&resolution, &minPeaksPerWindow, &minIntensity, &windowLength,&overlapping]
+            (const std::pair<int, MzSpectrumPL> &p) -> std::pair<std::pair<std::vector<int>, std::vector<int>>,
+            std::pair<std::vector<int>, std::vector<int>>> {
 
-    retScan.reserve(70000);
-    retBin.reserve(70000);
-    retWindowIndex.reserve(70000);
-    retIndices.reserve(70000);
-    retValues.reserve(70000);
+        auto windows = p.second.windows(windowLength, overlapping, minPeaksPerWindow, minIntensity);
 
-    int windowCounter = 0;
+        std::vector<int> retScan, retBin, retIndices, retValues;
 
-    for(const auto &[scan, spectrum]: spectra){
+        retScan.reserve(5000);
+        retBin.reserve(5000);
+        retIndices.reserve(5000);
+        retValues.reserve(5000);
 
-        auto windows = spectrum.windows(windowLength, overlapping,
-                                        minPeaksPerWindow, minIntensity);
-
-        for(const auto& [bin, window]: windows){
-
-            int offset = 0;
+        for(const auto &[bin, window]: windows){
+            // first, calculate the value that has to be subtracted from indices for zero indexing
+            int offset;
 
             if (bin > 0) {
                 offset = pow(10, resolution) * bin * windowLength;
@@ -379,17 +382,54 @@ std::pair<std::vector<int>, std::pair<std::pair<std::vector<int>, std::vector<in
                 retIndices.push_back(zeroIndex);
                 retValues.push_back(value);
             }
-
-            retScan.insert(retScan.end(), vectorizedWindow.indices.size(), scan);
+            retScan.insert(retScan.end(), vectorizedWindow.indices.size(), window.scanId);
             retBin.insert(retBin.end(),vectorizedWindow.indices.size(), bin);
-            retWindowIndex.insert(retWindowIndex.end(), vectorizedWindow.indices.size(), windowCounter);
-            windowCounter++;
         }
 
+        return {{retScan, retBin}, {retIndices, retValues}};
+    };
+
+    auto spectra = this->spectra();
+
+    std::vector<std::pair<std::pair<std::vector<int>, std::vector<int>>, std::pair<std::vector<int>, std::vector<int>>>> retWindowVec;
+    retWindowVec.resize(spectra.size());
+
+    std::transform(std::execution::par_unseq, spectra.begin(), spectra.end(), retWindowVec.begin(), createWindows);
+
+    std::vector<int> retScan, retBin, retIndices, retValues;
+
+    retScan.reserve(80000);
+    retBin.reserve(80000);
+    retIndices.reserve(80000);
+    retValues.reserve(80000);
+
+    for(const auto &[p1, p2]: retWindowVec){
+        retScan.insert(retScan.end(), p1.first.begin(), p1.first.end());
+        retBin.insert(retBin.end(), p1.second.begin(), p1.second.end());
+        retIndices.insert(retIndices.end(), p2.first.begin(), p2.first.end());
+        retValues.insert(retValues.end(), p2.second.begin(), p2.second.end());
     }
 
+    std::map<std::pair<int, int>, int> windowIndices;
 
-    return {retWindowIndex, {{retScan, retBin}, {retIndices, retValues}}};
+    int counter = 0;
+    for(std::size_t i = 0; i < retScan.size(); i++){
+        std::pair<int, int> p = {retScan[i], retBin[i]};
+        if(!windowIndices.contains(p)){
+            windowIndices[p] = counter;
+            counter++;
+        }
+    }
+
+    std::vector<int> rowIndex;
+    rowIndex.resize(retScan.size());
+
+    for(std::size_t i = 0; i < retScan.size(); i++){
+        std::pair<int, int> key = {retScan[i], retBin[i]};
+        rowIndex[i] = windowIndices[key];
+    }
+
+    return {counter, rowIndex, retScan, retBin, retIndices, retValues};
 }
 
 #endif //CPP_FRAME_H
