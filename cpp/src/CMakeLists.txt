@@ -3,9 +3,10 @@ project(src)
 
 include_directories("../../include/opentims/opentims++")
 include_directories("../../include/eigen")
+include_directories("../../include/pybind11/include")
 
-find_library(LIB_TBB NAMES tbb REQUIRED)
-find_library(SQLite3 NAMES sqlite3 REQUIRED)
+find_package(TBB REQUIRED)
+find_package(SQLite3 REQUIRED)
 find_library(ZSTD NAMES zstd REQUIRED)
 
 find_package(PythonLibs REQUIRED)
@@ -18,8 +19,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 add_library(proteolizard SHARED Proteolizard.cpp Hashing.h)
 
-target_link_libraries(proteolizard ${LIB_TBB})
+target_link_libraries(proteolizard TBB::tbb)
 target_link_libraries(proteolizard ${PYTHON_LIBRARIES})
 link_directories("../../include/opentims/opentims++/")
-target_link_libraries(proteolizard sqlite3)
-target_link_libraries(proteolizard zstd)
+target_link_libraries(proteolizard SQLite::SQLite3)
+target_link_libraries(proteolizard ${ZSTD})
