@@ -125,12 +125,19 @@ class MzSpectrum:
     def __add__(self, other):
         return MzSpectrum(self.spec_ptr + other.spec_ptr)
 
-    def to_resolution(self, resolution: int = 2):
+    def vectorize(self, resolution: int = 2):
         """
         :param resolution:
         :return:
         """
         return MzVector(self.spec_ptr.vectorize(resolution))
+
+    def to_resolution(self, resolution: int = 2):
+        """
+        :param resolution:
+        :return:
+        """
+        return MzVector(self.spec_ptr.toResolution(resolution))
 
     def windows(self, window_length=10, overlapping=True, min_peaks=3, min_intensity=50):
         bins, windows = self.spec_ptr.windows(window_length, overlapping, min_peaks, min_intensity)
@@ -258,7 +265,8 @@ class TimsFrame:
 
         len_mz_vector = int(np.power(10, resolution) * window_length)
 
-        st = tf.sparse.SparseTensor(indices=np.c_[wi, i], values=v.astype(np.float32), dense_shape=(c, len_mz_vector + 1))
+        st = tf.sparse.SparseTensor(indices=np.c_[wi, i], values=v.astype(np.float32),
+                                    dense_shape=(c, len_mz_vector + 1))
         return tf.transpose(tf.sparse.to_dense(st))
 
 

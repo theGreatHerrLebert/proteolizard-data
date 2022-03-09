@@ -41,6 +41,10 @@ PYBIND11_MODULE(libproteolizard, h) {
             .def("vectorize", [](MzSpectrumPL &self, int resolution) {
                 return self.vectorize(resolution);
             })
+            .def("toResolution", [](MzSpectrumPL &self, int resolution){
+                return self.toResolution(resolution);
+            })
+
             .def("windows",
                  [](MzSpectrumPL &self, double windowLength, bool overlapping, int minPeaks, int minIntensity) {
                 auto p = self.exportWindows(windowLength, overlapping, minPeaks, minIntensity);
