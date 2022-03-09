@@ -268,7 +268,7 @@ class TimsFrame:
         st = tf.sparse.SparseTensor(indices=np.c_[wi, i], values=v.astype(np.float32),
                                     dense_shape=(c, len_mz_vector + 1))
 
-        return tf.constant(b.astype(np.float32)), tf.transpose(tf.sparse.to_dense(st))
+        return tf.constant(b.astype(np.int32)), tf.transpose(tf.sparse.to_dense(st))
 
 
 class TimsSlice:
