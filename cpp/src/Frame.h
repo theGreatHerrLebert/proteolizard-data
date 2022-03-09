@@ -42,7 +42,12 @@ struct HashBlock{
     int counter;
     std::vector<int> rowIndex, scan, bin, indices, values;
     HashBlock(int c, std::vector<int> ri, std::vector<int> s, std::vector<int> b, std::vector<int> i, std::vector<int> v):
-    counter(c), rowIndex(std::move(ri)), scan(std::move(s)), bin(std::move(b)), indices(std::move(i)), values(std::move(v)){}
+    counter(c),
+    rowIndex(std::move(ri)),
+    scan(std::move(s)),
+    bin(std::move(b)),
+    indices(std::move(i)),
+    values(std::move(v)){}
 };
 
 /**
@@ -341,6 +346,13 @@ Eigen::MatrixXd TimsFramePL::denseWindowMatrix(int resolution, int minPeaksPerWi
     return retMatrix;
 }
 
+struct LambdaReturn {
+    std::vector<int> scans, bins, indices, values, scansWindow, binsWindow;
+    LambdaReturn() = default;
+    LambdaReturn(std::vector<int> s, std::vector<int> b, std::vector<int> i, std::vector<int> v, std::vector<int> sw, std::vector<int> bw):
+    scans(std::move(s)), bins(std::move(b)), indices(std::move(i)), values(std::move(v)), scansWindow(std::move(sw)), binsWindow(std::move(bw)){}
+};
+
 HashBlock TimsFramePL::getHashingBlocks(
         int resolution,
         int minPeaksPerWindow,
@@ -350,17 +362,19 @@ HashBlock TimsFramePL::getHashingBlocks(
 
     auto createWindows =
             [&resolution, &minPeaksPerWindow, &minIntensity, &windowLength,&overlapping]
-            (const std::pair<int, MzSpectrumPL> &p) -> std::pair<std::pair<std::vector<int>, std::vector<int>>,
-            std::pair<std::vector<int>, std::vector<int>>> {
+            (const std::pair<int, MzSpectrumPL> &p) -> LambdaReturn {
 
         auto windows = p.second.windows(windowLength, overlapping, minPeaksPerWindow, minIntensity);
 
-        std::vector<int> retScan, retBin, retIndices, retValues;
+        std::vector<int> retScan, retBin, retIndices, retValues, retScanWindow, retBinWindow;
 
         retScan.reserve(5000);
         retBin.reserve(5000);
         retIndices.reserve(5000);
         retValues.reserve(5000);
+        retScanWindow.reserve(5000);
+        retBinWindow.reserve(5000);
+
 
         for(const auto &[bin, window]: windows){
             // first, calculate the value that has to be subtracted from indices for zero indexing
@@ -384,30 +398,37 @@ HashBlock TimsFramePL::getHashingBlocks(
             }
             retScan.insert(retScan.end(), vectorizedWindow.indices.size(), window.scanId);
             retBin.insert(retBin.end(),vectorizedWindow.indices.size(), bin);
+            retScanWindow.push_back(window.scanId);
+            retBinWindow.push_back(bin);
         }
 
-        return {{retScan, retBin}, {retIndices, retValues}};
+        return {retScan, retBin, retIndices, retValues, retScanWindow, retBinWindow};
     };
 
     auto spectra = this->spectra();
 
-    std::vector<std::pair<std::pair<std::vector<int>, std::vector<int>>, std::pair<std::vector<int>, std::vector<int>>>> retWindowVec;
+    std::vector<LambdaReturn> retWindowVec;
     retWindowVec.resize(spectra.size());
 
     std::transform(std::execution::par_unseq, spectra.begin(), spectra.end(), retWindowVec.begin(), createWindows);
 
-    std::vector<int> retScan, retBin, retIndices, retValues;
+    std::vector<int> retScan, retBin, retIndices, retValues, retScanWindows, retBinWindows;
 
     retScan.reserve(80000);
     retBin.reserve(80000);
     retIndices.reserve(80000);
     retValues.reserve(80000);
 
-    for(const auto &[p1, p2]: retWindowVec){
-        retScan.insert(retScan.end(), p1.first.begin(), p1.first.end());
-        retBin.insert(retBin.end(), p1.second.begin(), p1.second.end());
-        retIndices.insert(retIndices.end(), p2.first.begin(), p2.first.end());
-        retValues.insert(retValues.end(), p2.second.begin(), p2.second.end());
+    retScanWindows.reserve(80000);
+    retBinWindows.reserve(80000);
+
+    for(const auto &lr: retWindowVec){
+        retScan.insert(retScan.end(), lr.scans.begin(), lr.scans.end());
+        retBin.insert(retBin.end(), lr.bins.begin(), lr.bins.end());
+        retIndices.insert(retIndices.end(), lr.indices.begin(), lr.indices.end());
+        retValues.insert(retValues.end(), lr.values.begin(), lr.values.end());
+        retScanWindows.insert(retScanWindows.end(), lr.scansWindow.begin(), lr.scansWindow.end());
+        retBinWindows.insert(retBinWindows.end(), lr.binsWindow.begin(), lr.binsWindow.end());
     }
 
     std::map<std::pair<int, int>, int> windowIndices;
@@ -429,7 +450,7 @@ HashBlock TimsFramePL::getHashingBlocks(
         rowIndex[i] = windowIndices[key];
     }
 
-    return {counter, rowIndex, retScan, retBin, retIndices, retValues};
+    return {counter, rowIndex, retScanWindows, retBinWindows, retIndices, retValues};
 }
 
 #endif //CPP_FRAME_H

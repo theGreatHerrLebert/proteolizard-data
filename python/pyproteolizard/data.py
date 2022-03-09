@@ -73,7 +73,7 @@ class PyTimsDataHandle:
         # extract rt frame region
         region = self.meta_data[(self.meta_data['Time'] >= rt_min) & (self.meta_data['Time'] <= rt_max)]
         return region[region['MsMsType'] != 0].Id.values
-            
+
     def __get_precursor_frame_ids(self):
         """
         :return: array of all precursor frame ids
@@ -260,14 +260,15 @@ class TimsFrame:
     def hashing_block_as_dense_tensor(self, resolution=1, min_peaks=3, min_intensity=50, window_length=10,
                                       overlapping=True):
 
-        c, wi, scan, mz_bin, i, v = self.frame_ptr.getHashingBlocks(resolution, min_peaks, min_intensity, window_length,
-                                                                    overlapping)
+        c, wi, s, b, i, v = self.frame_ptr.getHashingBlocks(resolution, min_peaks, min_intensity, window_length,
+                                                            overlapping)
 
         len_mz_vector = int(np.power(10, resolution) * window_length)
 
         st = tf.sparse.SparseTensor(indices=np.c_[wi, i], values=v.astype(np.float32),
                                     dense_shape=(c, len_mz_vector + 1))
-        return tf.transpose(tf.sparse.to_dense(st))
+
+        return tf.constant(b.astype(np.float32)), tf.transpose(tf.sparse.to_dense(st))
 
 
 class TimsSlice:
