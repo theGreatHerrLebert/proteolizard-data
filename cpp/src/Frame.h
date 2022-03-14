@@ -361,7 +361,7 @@ HashBlock TimsFramePL::getHashingBlocks(
         bool overlapping) {
 
     auto createWindows =
-            [&resolution, &minPeaksPerWindow, &minIntensity, &windowLength,&overlapping]
+            [&resolution, &minPeaksPerWindow, &minIntensity, &windowLength, &overlapping]
             (const std::pair<int, MzSpectrumPL> &p) -> LambdaReturn {
 
         auto windows = p.second.windows(windowLength, overlapping, minPeaksPerWindow, minIntensity);

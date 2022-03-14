@@ -152,9 +152,11 @@ std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool over
     std::map<int, MzSpectrumPL> splits;
 
     for(int i = 0; i < this->mz.size(); i++) {
+
         // get mz and intensity
         auto mmz = this->mz[i];
         auto iintensity = this->intensity[i];
+
         // calculate window key mz and intensity value should be sent to
         auto tmpKey = int(floor(mmz / windowLength));
 
@@ -163,7 +165,8 @@ std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool over
             splits[tmpKey].mz.push_back(mmz);
             splits[tmpKey].intensity.push_back(iintensity);
         }
-            // given key is not in map
+
+        // given key is not in map
         else {
             std::vector<double> tmpMz = {mmz};
             std::vector<int> tmpI = {iintensity};
@@ -178,6 +181,7 @@ std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool over
         for (int i = 0; i < this->mz.size(); i++) {
             auto mmz = this->mz[i];
             auto iintensity = this->intensity[i];
+
             // calculate window key with offset mz and intensity value should be sent to
             auto tmpKey = -int(floor(((mmz + windowLength / 2.0) / windowLength)));
 
@@ -198,9 +202,14 @@ std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool over
 
     std::map<int, MzSpectrumPL> retSplits;
 
+    // check for minPeaks and minIntensity per window
     for(const auto& [bin, spectrum]: splits){
-        if(this->mz.size() >= minPeaks){
+
+        // check minPeaks
+        if(spectrum.mz.size() >= minPeaks){
             auto it = *max_element(std::begin(spectrum.intensity), std::end(spectrum.intensity));
+
+            // check minIntensity
             if(it >= minIntensity)
                 retSplits[bin] = spectrum;
         }
