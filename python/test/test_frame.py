@@ -1,5 +1,4 @@
 import numpy as np
-import tensorflow as tf
 from pyproteolizard.data import TimsFrame
 
 scan = [1, 1, 1, 1, 2, 2, 2, 2, 3, 3]
@@ -16,9 +15,9 @@ def test_frame_construction():
 
 
 def test_spectral_splitting():
-    spec1, spec2 = frame.get_spectra()
-    assert {500.123, 506.123, 507.127, 511.112} == set(spec1.mz()) \
-           and {500.123, 506.123, 708.58, 892.123} == set(spec2.mz())
+    spec_1, spec_2, spec_3 = frame.get_spectra()
+    assert {500.123, 506.123, 507.127, 511.112} == set(spec_1.mz()) \
+           and {500.123, 506.123, 708.58, 892.123} == set(spec_2.mz())
 
 
 def test_window_block_generation():
