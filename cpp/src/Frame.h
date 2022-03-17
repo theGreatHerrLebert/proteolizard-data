@@ -55,10 +55,11 @@ struct HashBlock{
  */
 struct TimsFramePL {
     // member data
-    int frameId{};
+    int frameId {};
     std::vector<int> scans {};
     std::vector<double> mzs {};
-    std::vector<int> intensities, tofs {};
+    std::vector<int> intensities {};
+    std::vector<int> tofs {};
     std::vector<double> inv_ion_mobs {};
     
     // constructors
