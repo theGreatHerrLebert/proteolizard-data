@@ -86,22 +86,32 @@ MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSp
  */
 MzVectorPL MzSpectrumPL::vectorize(int resolution) const{
 
-    auto tmp = this->toResolution(resolution);
+    // auto tmp = this->toResolution(resolution);
 
-    int factor = pow(10, resolution);
+    std::map<int, int> intensityMap;
+    double factor = pow(10.0, resolution);
+
     std::vector<int> indices;
-    indices.reserve(tmp.mz.size());
-
     std::vector<int> values;
-    values.reserve(tmp.intensity.size());
 
-    for(const auto m : tmp.mz)
-        indices.push_back(m * factor);
+    for(size_t i = 0; i < this->mz.size(); i++){
 
-    for(const auto i : tmp.intensity)
-        values.push_back(i);
+        // calculate binned mz value as key
+        int rounded = int(round(this->mz[i] * factor));
+        // add intensity to generated key
+        intensityMap[rounded] += this->intensity[i];
+    }
 
-    return MzVectorPL{resolution, tmp.frameId, tmp.scanId, indices, values};
+    indices.reserve(intensityMap.size());
+    values.reserve(intensityMap.size());
+
+    // get all mz values and sort them
+    for (const auto& [key, value] : intensityMap) {
+        indices.push_back(key);
+        values.push_back(value);
+    }
+
+    return MzVectorPL{resolution, this->frameId, this->scanId, indices, values};
 }
 
 /**
@@ -120,7 +130,7 @@ MzSpectrumPL MzSpectrumPL::toResolution(int resolution) const{
     for(size_t i = 0; i < this->mz.size(); i++){
 
         // calculate binned mz value as key
-        int rounded = int(roundf(this->mz[i] * factor));
+        int rounded = int(round(this->mz[i] * factor));
         // add intensity to generated key
         intensityMap[rounded] += this->intensity[i];
     }

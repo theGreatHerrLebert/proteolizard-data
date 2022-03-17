@@ -50,7 +50,7 @@ def test_binning():
     test if binning implemented in C++ returns same result as python implementation
     """
 
-    assert set(spectrum_2.to_resolution(2).values()) == {3, 7}
+    assert set(spectrum_2.vectorize(2).values()) == {3, 7}
 
 
 def test_grouping():
@@ -58,10 +58,12 @@ def test_grouping():
     test if binning implemented in C++ returns same result as python implementation
     """
     mz_bins_1 = [int(np.round_(m, 1) * np.power(10, 1)) for m in spectrum.mz()]
-    binned_mz_1 = spectrum.to_resolution(1).indices()
+    binned_mz_1 = spectrum.vectorize(1).indices()
 
     mz_bins_2 = [int(np.round_(m, 2) * np.power(10, 2)) for m in spectrum.mz()]
-    binned_mz_2 = spectrum.to_resolution(2).indices()
+    binned_mz_2 = spectrum.vectorize(2).indices()
+
+    print([a == b for a, b in zip(mz_bins_1, binned_mz_1)])
 
     assert set(mz_bins_1) == set(binned_mz_1) and set(mz_bins_2) == set(binned_mz_2)
 
@@ -70,7 +72,7 @@ def test_intensity_grouping():
     """
 
     """
-    assert set(spectrum_2.to_resolution(2).values()) == {3, 7}
+    assert set(spectrum_2.vectorize(2).values()) == {3, 7}
 
 
 def test_window_generation():

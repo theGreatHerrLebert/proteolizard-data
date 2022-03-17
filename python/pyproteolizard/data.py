@@ -137,7 +137,7 @@ class MzSpectrum:
         :param resolution:
         :return:
         """
-        return MzVector(self.spec_ptr.toResolution(resolution))
+        return MzSpectrum(self.spec_ptr.toResolution(resolution))
 
     def windows(self, window_length=10, overlapping=True, min_peaks=3, min_intensity=50):
         bins, windows = self.spec_ptr.windows(window_length, overlapping, min_peaks, min_intensity)
