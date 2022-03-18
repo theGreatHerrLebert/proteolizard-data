@@ -15,6 +15,68 @@
 #include <algorithm>
 #include <execution>
 
+struct CollisionBox{
+    int mzBin {};
+    std::map<int, std::pair<bool, std::vector<int>>> keyMap {};
+    CollisionBox()= default;
+    CollisionBox(int bin, int key, int scan): mzBin(bin){
+        keyMap[bin] = {key, {scan}};
+    };
+    void append(int key, int scan);
+    std::pair<int, std::set<int>> flatCollisions();
+};
+
+void CollisionBox::append(int key, int scan) {
+    if(this->keyMap.contains(key)){
+        auto p = this->keyMap[key];
+        p.first = true;
+        p.second.push_back(scan);
+    } else {
+        std::pair<bool, std::vector<int>> p = {false, {scan}};
+        keyMap[key] = p;
+    }
+}
+
+std::pair<int, std::set<int>> CollisionBox::flatCollisions() {
+    // TODO: check if length of retScan could be known a priori
+    std::vector<int> retScans;
+    for(auto &[key, pair]: this->keyMap){
+        if (pair.first){
+            retScans.insert(retScans.end(), pair.second.begin(), pair.second.end());
+        }
+    }
+    std::set<int> s(retScans.begin(), retScans.end());
+    return {this->mzBin, s};
+}
+
+std::map<int, std::set<int>> collisionsInBox(std::vector<int> band, std::vector<int> scans, std::vector<int> bins){
+
+    std::map<int, CollisionBox> tmpMap;
+    for(std::size_t i = 0; i < band.size(); i++){
+        auto key = band[i];
+        auto scan = scans[i];
+        auto bin = bins[i];
+
+        if(tmpMap.contains(key)){
+            tmpMap[key].append(key, scan);
+        }
+        else {
+            tmpMap[key] = {bin, key, scan};
+        }
+    }
+
+    std::map<int, std::set<int>> retMap;
+
+    for(auto &[key, p]: tmpMap){
+        auto flatCollision = p.flatCollisions();
+        if(!flatCollision.second.empty()){
+            retMap[flatCollision.first] = flatCollision.second;
+        }
+    }
+
+    return retMap;
+}
+
 
 /**
  * check if a given key occurred in map more then once
@@ -170,6 +232,8 @@ struct TimsHashGenerator {
             double windowLength,
             bool overlapping,
             bool binRestricted);
+
+    std::pair<std::vector<int>, std::vector<int>> getCollisionInBands(Eigen::MatrixXi H, std::vector<int> scans, std::vector<int> bins);
 };
 
 
@@ -264,6 +328,59 @@ std::vector<int> TimsHashGenerator::hashSpectrum(MzSpectrumPL &spectrum) {
     auto keys = calculateKeys(signumVec, 1, false);
 
     return keys;
+}
+
+
+std::map<int, std::set<int>> mergeBands(std::map<int, std::set<int>> b1, std::map<int, std::set<int>> b2){
+    for(auto& [key, set]: b2){
+        if(b1.contains(key)){
+            b1[key].insert(set.begin(), set.end());
+        }
+        else {
+            b1[key] = set;
+        }
+    }
+    return b1;
+}
+
+std::pair<std::vector<int>, std::vector<int>> TimsHashGenerator::getCollisionInBands(Eigen::MatrixXi H, std::vector<int> scans, std::vector<int> bins) {
+
+        auto singleCollisionInBox = [&scans, &bins](std::vector<int>& band) -> std::map<int, std::set<int>>{
+            return collisionsInBox(band, scans, bins);
+        };
+
+        std::vector<std::vector<int>> M;
+        M.resize(H.cols());
+
+        for(auto i = 0; i < H.cols(); i++){
+            auto B = H.col(i);
+            M[i].reserve(B.size());
+            for(auto j = 0; j < B.size(); j++){
+                M[i].push_back(B[j]);
+            }
+        }
+
+        std::vector<std::map<int, std::set<int>>> retVec;
+        retVec.resize(M.size());
+
+        std::transform(std::execution::par_unseq, M.begin(), M.end(), retVec.begin(), singleCollisionInBox);
+
+        std::map<int, std::set<int>> retMap {};
+
+        for(std::map<int, std::set<int>> item: retVec){
+            retMap = mergeBands(retMap, item);
+        }
+
+        std::vector<int> retBins, retScans;
+        retBins.reserve(retMap.size());
+        retScans.reserve(retMap.size());
+
+        for(auto &[k, v]: retMap){
+            retBins.push_back(k);
+            retScans.insert(retScans.begin(), v.begin(), v.end());
+        }
+
+    return {retBins, retScans};
 }
 
 #endif //SRC_HASHING_H
