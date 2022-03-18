@@ -38,13 +38,13 @@ class TimsHasher:
         self.seed = seed
         self.resolution = resolution
         self.num_dalton = num_dalton
-        self.__hash_ptr = pl.TimsHashGenerator(len_trial, trials, seed, resolution, num_dalton)
+        self.hash_ptr = pl.TimsHashGenerator(len_trial, trials, seed, resolution, num_dalton)
         self.hash_matrix = self.get_matrix()
         self.hash_tensor = self.tf_tensor()
 
     # fetch matrix from C++ implementation
     def get_matrix(self):
-        return self.__hash_ptr.getMatrixCopy()
+        return self.hash_ptr.getMatrixCopy()
 
     # create TF tensor (potentially GPU located) for hashing
     def tf_tensor(self):
