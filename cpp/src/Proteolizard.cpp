@@ -266,14 +266,11 @@ PYBIND11_MODULE(libproteolizard, h) {
                 auto p = self.hashFrame(frame, minPeaks, minIntensity, windowLength, overlapping, restricted);
                 return py::make_tuple(py::array(py::cast(p.first)), py::array(py::cast(p.second.first)), py::array(py::cast(p.second.second)));
             })
-            .def("calculateCollisions", [](TimsHashGenerator &self, py::array_t<int64_t> hashes, std::vector<int> scans, std::vector<int> bins){
+            .def("calculateCollisions", [](TimsHashGenerator &self, py::array_t<int64_t> hashes,
+                    std::vector<int> scans, std::vector<int> bins){
                 Eigen::MatrixXi H = hashes.cast<Eigen::MatrixXi>();
-                return py::make_tuple(H.rows(), H.cols());
+                auto p = self.getCollisionInBands(H, scans, bins);
+                return py::make_tuple(py::array(py::cast(p.first)), py::array(py::cast(p.second)));
             })
-            /*
-            .def("calculateCollisions64", [](TimsHashGenerator &self, py::array_t<int64_t> hashes, std::vector<int> scans, std::vector<int> bins){
-                Eigen::MatrixXd H = hashes.cast<Eigen::MatrixXd>();
-            })
-             */
             ;
 }

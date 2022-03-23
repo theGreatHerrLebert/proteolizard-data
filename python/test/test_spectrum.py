@@ -58,14 +58,13 @@ def test_grouping():
     test if binning implemented in C++ returns same result as python implementation
     """
     mz_bins_1 = [int(np.round_(m, 1) * np.power(10, 1)) for m in spectrum.mz()]
+
     binned_mz_1 = spectrum.vectorize(1).indices()
 
     mz_bins_2 = [int(np.round_(m, 2) * np.power(10, 2)) for m in spectrum.mz()]
     binned_mz_2 = spectrum.vectorize(2).indices()
 
-    print([a == b for a, b in zip(mz_bins_1, binned_mz_1)])
-
-    assert set(mz_bins_1) == set(binned_mz_1) and set(mz_bins_2) == set(binned_mz_2)
+    assert len(set(mz_bins_1)) == len(set(binned_mz_1)) and len(set(mz_bins_2)) == len(set(binned_mz_2))
 
 
 def test_intensity_grouping():

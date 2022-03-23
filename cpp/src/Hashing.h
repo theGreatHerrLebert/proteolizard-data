@@ -15,25 +15,32 @@
 #include <algorithm>
 #include <execution>
 
+// helper to check for self collision of windows
 struct CollisionBox{
+    // mz bin of box
     int mzBin {};
+    // data structure to keep track of hash-key, collision status and scans
     std::map<int, std::pair<bool, std::vector<int>>> keyMap {};
+
     CollisionBox()= default;
-    CollisionBox(int bin, int key, int scan): mzBin(bin){
-        keyMap[bin] = {key, {scan}};
-    };
-    void append(int key, int scan);
+    CollisionBox(int bin, int hashKey, int scan);
+    void append(int hashKey, int scan);
     std::pair<int, std::set<int>> flatCollisions();
 };
 
-void CollisionBox::append(int key, int scan) {
-    if(this->keyMap.contains(key)){
-        auto p = this->keyMap[key];
+CollisionBox::CollisionBox(int bin, int hashKey, int scan): mzBin(bin) {
+    keyMap[hashKey] = {false, {scan}};
+}
+
+
+void CollisionBox::append(int hashKey, int scan) {
+    if(this->keyMap.contains(hashKey)){
+        auto &p = this->keyMap[hashKey];
         p.first = true;
         p.second.push_back(scan);
     } else {
         std::pair<bool, std::vector<int>> p = {false, {scan}};
-        keyMap[key] = p;
+        keyMap[hashKey] = p;
     }
 }
 
@@ -51,27 +58,32 @@ std::pair<int, std::set<int>> CollisionBox::flatCollisions() {
 
 std::map<int, std::set<int>> collisionsInBox(std::vector<int> band, std::vector<int> scans, std::vector<int> bins){
 
+    // mz_bin -> CollisionBox
     std::map<int, CollisionBox> tmpMap;
+
+    // go over all keys in band
     for(std::size_t i = 0; i < band.size(); i++){
+
         auto key = band[i];
         auto scan = scans[i];
         auto bin = bins[i];
 
-        if(tmpMap.contains(key)){
-            tmpMap[key].append(key, scan);
+        if(tmpMap.contains(bin)){
+            tmpMap[bin].append(key, scan);
         }
         else {
-            tmpMap[key] = {bin, key, scan};
+            tmpMap[bin] = {bin, key, scan};
         }
     }
 
     std::map<int, std::set<int>> retMap;
 
     for(auto &[key, p]: tmpMap){
+
         auto flatCollision = p.flatCollisions();
-        if(!flatCollision.second.empty()){
+
+        if(!flatCollision.second.empty())
             retMap[flatCollision.first] = flatCollision.second;
-        }
     }
 
     return retMap;
@@ -349,6 +361,7 @@ std::pair<std::vector<int>, std::vector<int>> TimsHashGenerator::getCollisionInB
             return collisionsInBox(band, scans, bins);
         };
 
+        // take Hashing Matrix H and get all columns, effectively slicing it by bands
         std::vector<std::vector<int>> M;
         M.resize(H.cols());
 
@@ -376,8 +389,9 @@ std::pair<std::vector<int>, std::vector<int>> TimsHashGenerator::getCollisionInB
         retScans.reserve(retMap.size());
 
         for(auto &[k, v]: retMap){
-            retBins.push_back(k);
-            retScans.insert(retScans.begin(), v.begin(), v.end());
+            retBins.insert(retBins.end(), v.size(), k);
+            //retBins.push_back(k);
+            retScans.insert(retScans.end(), v.begin(), v.end());
         }
 
     return {retBins, retScans};
