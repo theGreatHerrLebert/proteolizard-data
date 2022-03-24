@@ -51,7 +51,11 @@ class TimsHasher:
         return tf.transpose(tf.constant(self.hash_matrix.astype(np.float32)))
 
     # create keys by random projection
-    def calculate_keys(self, W):
+    def calculate_keys(self, W: tf.Tensor):
+        """
+
+        :param W:
+        """
         # generate signum
         S = (tf.sign(W @ self.hash_tensor) + 1) / 2
 
@@ -69,3 +73,13 @@ class TimsHasher:
             # calculate int key from binary by base-transform
             H = tf.squeeze(S @ self.V)
             return H
+
+    def calculate_collisions(self, H: np.array, s: np.array, b: np.array):
+        """
+
+        :param H: HashMatrix
+        :param s: vector of scans
+        :param b: vector of bins
+        :return: (bins, scans)
+        """
+        return self.hash_ptr.calculateCollisions(H, s, b)
