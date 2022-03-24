@@ -5,6 +5,7 @@ from tqdm import tqdm
 
 from pyproteolizard.hashing import TimsHasher
 
+np.random.seed(0)
 
 def get_signal_noise(sigma, n_windows, n_bins):
     # generate F and F_prime
