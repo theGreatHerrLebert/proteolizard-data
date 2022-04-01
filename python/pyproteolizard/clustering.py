@@ -46,7 +46,7 @@ def cluster_precursors_dbscan(precursor_points,
                         columns=['cycle', 'scan', 'mz', 'intensity', 'label'])
 
 
-def cluster_precursors_hdbscan(fragment_point,
+def cluster_precursors_hdbscan(precursor_points,
                                algorithm: str = 'best',
                                alpha: float = 1.0,
                                approx_min_span_tree: bool = True,
@@ -63,7 +63,7 @@ def cluster_precursors_hdbscan(fragment_point,
                                ):
     """
     cluster the precursors of a given (potentially filtered) precursor slice of timsTOF data with dbscan
-    :param fragment_point:
+    :param precursor_points:
     :param algorithm:
     :param alpha:
     :param approx_min_span_tree:
@@ -81,7 +81,7 @@ def cluster_precursors_hdbscan(fragment_point,
     """
 
     # get points from slice
-    points = fragment_point
+    points = precursor_points
 
     # make copy to avoid return of scaled values
     rt_dim = np.copy(points[:, 0])
