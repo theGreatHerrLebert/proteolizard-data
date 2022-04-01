@@ -5,7 +5,7 @@ from pyproteolizard.utility import peak_width_preserving_mz_transform
 from hdbscan import HDBSCAN
 
 
-def cluster_precursors_dbscan(experiment_slice,
+def cluster_precursors_dbscan(precursor_points,
                               epsilon: float = 1.7,
                               min_samples: int = 7,
                               metric: str = 'euclidean',
@@ -14,7 +14,7 @@ def cluster_precursors_dbscan(experiment_slice,
                               resolution: int = 50_000):
     """
     cluster the precursors of a given (potentially filtered) precursor slice of timsTOF data with dbscan
-    :param experiment_slice: a MidiaSlice that must contain precursor data
+    :param precursor_points: a MidiaSlice that must contain precursor data
     :param epsilon: DBSCAN epsilon
     :param min_samples: DBSCAN min_samples
     :param metric: DBSCAN metric
@@ -25,7 +25,7 @@ def cluster_precursors_dbscan(experiment_slice,
     """
 
     # get points from slice
-    points = experiment_slice.get_precursor_coords3D().get_points()
+    points = precursor_points
 
     # make copy to avoid return of scaled values
     rt_dim = np.copy(points[:, 0])
@@ -46,7 +46,7 @@ def cluster_precursors_dbscan(experiment_slice,
                         columns=['cycle', 'scan', 'mz', 'intensity', 'label'])
 
 
-def cluster_precursors_hdbscan(experiment_slice,
+def cluster_precursors_hdbscan(fragment_point,
                                algorithm: str = 'best',
                                alpha: float = 1.0,
                                approx_min_span_tree: bool = True,
@@ -63,6 +63,7 @@ def cluster_precursors_hdbscan(experiment_slice,
                                ):
     """
     cluster the precursors of a given (potentially filtered) precursor slice of timsTOF data with dbscan
+    :param fragment_point:
     :param algorithm:
     :param alpha:
     :param approx_min_span_tree:
@@ -80,7 +81,7 @@ def cluster_precursors_hdbscan(experiment_slice,
     """
 
     # get points from slice
-    points = experiment_slice.get_precursor_coords3D().get_points()
+    points = fragment_point
 
     # make copy to avoid return of scaled values
     rt_dim = np.copy(points[:, 0])
