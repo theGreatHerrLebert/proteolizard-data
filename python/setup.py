@@ -19,6 +19,9 @@ setup(
     install_requires=[
         "tensorflow >=2.7",
         "pandas >=1.1",
-        "opentims_bruker_bridge"
+        "opentims_bruker_bridge",
+	"sklearn",
+	"tqdm",
+	"pytest"
     ]
 )
