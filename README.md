@@ -4,7 +4,7 @@
 Ion-mobility enhanced tandem-MS coupled with liquid chromatography is rapidly becoming the methods of 
 choice to analyse high-complexity samples generated in proteomics, lipidomics and metabolomics.
 While information gain stemming from this acquisition scheme is tremendous, an additional recoding of 
-ion mobility makes data processing more challenging. This extra-dimension puts a lot of pressure on the 
+ion mobility makes data processing more challenging. The extra-dimension puts a lot of pressure on the 
 programmer to find solutions to raw-data processing that are fast enough to be useful.
 
 The timsTOF mass-spectrometer from bruker daltonics is one of the latest instruments to implement
