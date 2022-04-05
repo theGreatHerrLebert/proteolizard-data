@@ -2,7 +2,7 @@
 ### An object-oriented library of C++ classes and python-wrappers to seamlessly integrate timsTOF raw-data with python
 
 ## Context
-Ion-mobility enhanced tandem-MS coupled with liquid chromatography is rapidly becoming the methods of 
+Ion-mobility enhanced tandem-MS coupled to liquid chromatography is rapidly becoming the method of 
 choice to analyse high-complexity samples generated in proteomics, lipidomics and metabolomics.
 While information gain stemming from this acquisition scheme is tremendous, an additional recoding of 
 ion mobility makes data processing more challenging. The extra-dimension puts a lot of pressure on the 
