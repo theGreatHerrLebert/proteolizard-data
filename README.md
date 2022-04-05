@@ -15,7 +15,7 @@ easy programmatic access to such datasets, allowing the exposure of raw-data to 
 python, R and the JVM.
 
 ## What is proteolizard-data?
-`proteolizard` builds on top of the low-level C++ API of `opentims`, adding a thin layer of C++ classes that 
+`proteolizard-data` builds on top of the low-level C++ API of `opentims`, adding a thin layer of C++ classes that 
 are exposed to python via bindings created with the excellent [`pybind11`](https://github.com/pybind/pybind11) 
 library. The approach taken is different to that of [`timspy`](https://github.com/MatteoLacki/timspy) 
 or [`alphatims`](https://github.com/MannLabs/alphatims), focussing on convenient, easy-to-use
