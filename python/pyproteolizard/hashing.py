@@ -2,7 +2,15 @@ import tensorflow as tf
 import numpy as np
 import warnings
 import libproteolizard as pl
+import pandas as pd
+
 from pyproteolizard.data import MzSpectrum, TimsFrame
+
+from sklearn.metrics.pairwise import cosine_similarity
+
+from scipy.ndimage.interpolation import shift
+from tqdm import tqdm
+
 
 
 def bins_to_mz(mz_bin, win_len):
@@ -83,3 +91,251 @@ class TimsHasher:
         :return: (bins, scans)
         """
         return self.hash_ptr.calculateCollisions(H, s, b)
+
+
+class ReferencePattern:
+    """
+    """
+
+    def __init__(self, mz_bin, mz_mono, mz_last_contrib, charge, spectrum, window_length=5, resolution=2):
+        """
+        :param mz_bin:
+        :param mz_mono:
+        :param mz_last_contrib:
+        :param charge:
+        :param spectrum:
+        :param window_length:
+        :param resolution:
+        """
+        self.mz_bin = mz_bin
+        self.mz_mono = mz_mono
+        self.charge = charge
+        self.spec = spectrum
+        self.window_length = window_length
+        self.mz_last_contrib = mz_last_contrib
+        self.patterns = self.get_rolling_patterns(resolution)
+
+    def zero_indexed_sparse_vector(self, resolution, min_percent_contrib=1):
+        """
+        :param resolution:
+        :param min_percent_contrib:
+        :return:
+        """
+        assert 0 <= min_percent_contrib <= 100, f'percent contrib needs to be in [0, 100], was: \
+        {min_percent_contrib}'
+
+        binned_spectrum = self.spec.vectorize(resolution)
+        indices, values = binned_spectrum.indices(), binned_spectrum.values()
+
+        i = indices - np.min(indices)
+        v = values / np.max(values)
+
+        perc = min_percent_contrib / 100
+
+        ret_i, ret_v = [], []
+        for index, value in zip(i, v):
+            if value >= perc:
+                ret_i.append(index)
+                ret_v.append(value)
+
+        return np.array(ret_i), np.array(ret_v)
+
+    def zero_indexed_dense_vector(self, resolution=2, min_percent_contrib=1):
+        """
+        :param resolution:
+        :param min_percent_contrib:
+        """
+        indices, values = self.zero_indexed_sparse_vector(resolution, min_percent_contrib)
+        zeros = np.zeros(int(self.window_length * np.power(10, resolution)) + 1)
+
+        for i, v in zip(indices, values):
+            if i < len(zeros):
+                zeros[i] = v
+
+        return zeros
+
+    # TODO: remove rolled pattern reinsertion into front
+    def get_rolling_patterns(self, resolution, min_percent_contrib=1):
+        """
+        :param resolution:
+        :param min_percent_contrib:
+        """
+        p = self.zero_indexed_dense_vector(resolution, min_percent_contrib)
+
+        r = []
+        last = np.nonzero(p)[0][-1]
+
+        for i in range(last):
+            d = shift(p, i, cval=0)
+            r.append(d)
+
+        return np.array(r)
+
+    def cosine_similarity(self, window, resolution=2, min_percent_contrib=1):
+        """
+        """
+        dense_vectors = self.get_rolling_patterns(resolution, min_percent_contrib)
+        c = cosine_similarity(dense_vectors, window.reshape(1, -1))
+        best_sim = c[np.argmax(c)]
+
+        return c, best_sim, dense_vectors[np.argmax(c)]
+
+    def __repr__(self):
+        return f'ReferencePattern(bin: {self.mz_bin}, mz mono: {self.mz_mono}, charge: \
+    {self.charge}, last contrib: {self.mz_last_contrib})'
+
+
+class IsotopeReferenceSearch:
+    """
+    """
+
+    def __init__(self, reference_pattern, hasher):
+        """
+        """
+        self.reference_pattern = reference_pattern
+        self.hasher = hasher
+
+        r_dict = {}
+
+        for key in tqdm(self.reference_pattern, desc='calculating keys', ncols=100):
+            mzs, charges, vectors = self.get_candidates_blocked(key)
+            keys = hasher.calculate_keys(vectors)
+
+            r_dict[key] = (mzs, charges, keys, vectors)
+
+        self.key_dict = r_dict
+
+    def get_candidates(self, b):
+        """
+        """
+        if b in self.reference_pattern:
+            return self.reference_pattern[b]
+
+        else:
+            return None
+
+    def get_keys(self, b):
+        """
+        """
+        if b in self.key_dict:
+            return self.key_dict[b]
+
+        else:
+            return None
+
+    def get_candidates_blocked(self, b, resolution=2):
+        """
+        """
+        ref_pattern = self.get_candidates(b)
+        c_list, m_list, bin_list = [], [], []
+
+        for p in ref_pattern:
+
+            M = p.get_rolling_patterns(resolution)
+
+            b_inner = []
+
+            for i in range(M.shape[0]):
+                b_inner.append(p.mz_mono + i / np.power(10, resolution))
+
+            C = np.repeat(p.charge, M.shape[0])
+            c_list.append(C)
+            m_list.append(M)
+            bin_list.append(np.array(b_inner))
+
+        C = np.concatenate(c_list)
+        M = np.concatenate(m_list)
+        B = np.concatenate(bin_list)
+
+        return B, C, M
+
+    def get_max_similarity(self, b, window, resolution=2):
+        """
+        """
+        ref_pattern = self.get_candidates(b)
+        B, C, M = self.get_candidates_blocked(b, resolution)
+
+        SIM = cosine_similarity(M, window.reshape(1, -1))
+
+        max_sim = np.max(SIM)
+        argmax_sim = np.argmax(SIM)
+        charge_state = C[argmax_sim]
+        monoisotopic_mass = B[argmax_sim]
+
+        return M[argmax_sim], max_sim, monoisotopic_mass, charge_state
+
+    def find_isotope_patterns(self, frame: TimsFrame, min_intensity=100, min_peaks=5, overlapping=True):
+        """
+        :param frame:
+        :param min_intensity:
+        :param min_peaks:
+        :param overlapping:
+        :return:
+        """
+
+        s, b, F = frame.hashing_block_as_dense_tensor(
+            window_length=self.hasher.num_dalton,
+            resolution=self.hasher.resolution,
+            min_intensity=min_intensity,
+            min_peaks=min_peaks,
+            overlapping=overlapping)
+
+        WK = self.hasher.calculate_keys(F).numpy()
+        F = F.numpy()
+
+        r_list = []
+
+        for scan, mz_bin, keys, vectors in zip(s, b, WK, F):
+            r_list.append(self.calculate_window_collision(scan, np.abs(mz_bin), keys, vectors))
+
+        A = np.hstack([np.expand_dims(s, axis=1), np.expand_dims(b, axis=1), np.array(r_list)])
+        patterns = pd.DataFrame(A[A[:, 4] != -1], columns=['scan', 'bin', 'cosim', 'mz_mono', 'charge'])
+
+        patterns['overlapping'] = patterns['bin'] < 0
+        patterns['overlapping_inverted'] = patterns['bin'] > 0
+
+        patterns['bin'] = np.abs(patterns['bin'])
+
+        patterns['id'] = np.arange(patterns.shape[0])
+
+        overlapping_false = patterns[patterns.overlapping == False]
+        overlapping_true = patterns[patterns.overlapping]
+
+        overlap_duplicates = pd.merge(left=overlapping_false, right=overlapping_true,
+                                      left_on=['bin', 'overlapping', 'scan'],
+                                      right_on=['bin', 'overlapping_inverted', 'scan'])
+
+        overlap_duplicates['is_x_larger'] = overlap_duplicates.cosim_x > overlap_duplicates.cosim_y
+
+        drop_ids = set(overlap_duplicates.apply(lambda r: r['id_y'] if r['is_x_larger'] else r['id_x'], axis=1).values)
+
+        patterns = patterns[patterns.apply(lambda r: r['id'] not in drop_ids,
+                                           axis=1)].drop(columns=['id', 'overlapping_inverted', 'overlapping'])
+
+        return patterns
+
+    def calculate_window_collision(self, scan, mz_bin, keys, dense_vector, min_cosim=0.6):
+
+        if mz_bin in self.key_dict:
+
+            mz, charge, keys_ref, vectors = self.get_keys(np.abs(mz_bin))
+            candidates = np.any(keys == keys_ref, axis=1)
+
+            m_c, c_c, v_c = mz[candidates], charge[candidates], vectors[candidates]
+
+            if len(m_c) > 0:
+
+                real_cosim = cosine_similarity(v_c, dense_vector.reshape(1, -1))
+
+                argmax_cosim = np.argmax(real_cosim)
+                max_cosim = np.round(real_cosim[argmax_cosim][0], 2)
+                max_m_c = m_c[argmax_cosim]
+                max_c_c = c_c[argmax_cosim]
+
+                if max_cosim > min_cosim:
+                    return np.array([max_cosim, max_m_c, max_c_c])
+
+                else:
+                    return np.array([-1, -1, -1])
+
+        return np.array([-1, -1, -1])

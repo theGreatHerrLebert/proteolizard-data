@@ -270,6 +270,12 @@ class TimsFrame:
 
         return s.astype(np.int32), b.astype(np.int32), tf.sparse.to_dense(st)
 
+    def data(self):
+        return pd.DataFrame({'frame': np.repeat(self.frame_id(), self.mz().shape[0]),
+                             'scan':self.scan(),
+                             'mz':self.mz(),
+                             'intensity':self.intensity()})
+
 
 class TimsSlice:
     def __init__(self, slice_ptr):
@@ -287,7 +293,7 @@ class TimsSlice:
     def get_fragment_points(self):
         return Points3D(self.__slice_ptr.getPoints(False)).get_points()
 
-    def filter_ranged(self, mz_min, mz_max, scan_min=0, scan_max=1000, intensity_min=0):
+    def filter_ranged(self, mz_min=0, mz_max=2000, scan_min=0, scan_max=1000, intensity_min=0):
         return TimsSlice(self.__slice_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
 
 
@@ -302,4 +308,4 @@ class Points3D:
         inv_ion_mob = self.__point_ptr.getInvIonMobility()
         intensity = self.__point_ptr.getIntensity()
 
-        return pd.DataFrame({'frame': ids, 'scan': scans, 'invIonMob': inv_ion_mob, 'mz': mz, 'intensity': intensity})
+        return pd.DataFrame({'frame': ids, 'scan': scans, 'inv_ion_mob': inv_ion_mob, 'mz': mz, 'intensity': intensity})
