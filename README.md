@@ -1,6 +1,7 @@
 # proteolizard-data
 ### An object-oriented library of C++ classes and python-wrappers to seamlessly integrate timsTOF raw-data with python
 
+## Context
 Ion-mobility enhanced tandem-MS coupled with liquid chromatography is rapidly becoming the methods of 
 choice to analyse high-complexity samples generated in proteomics, lipidomics and metabolomics.
 While information gain stemming from this acquisition scheme is tremendous, an additional recoding of 
@@ -13,6 +14,7 @@ The open-source [`opentims`](https://github.com/michalsta/opentims) project was 
 easy programmatic access to such datasets, allowing the exposure of raw-data to languages including C++, 
 python, R and the JVM.
 
+## What is proteolizard-data?
 `proteolizard` builds on top of the low-level C++ API of `opentims`, adding a thin layer of C++ classes that 
 are exposed to python via bindings created with the excellent [`pybind11`](https://github.com/pybind/pybind11) 
 library. The approach taken is different to that of [`timspy`](https://github.com/MatteoLacki/timspy) 
@@ -21,7 +23,7 @@ classes that implement fast processing on dataset slice, frame or spectrum basis
 quickly explore timsTOF datasets or prototype ideas and can be easily integrated into the well 
 established, python-centric data science stack e.g. `scikit-learn`, `tensorflow` or `pytorch`.
 
-
+## Navigation
 * [**Build and install (py)proteolizard-data**](#build-and-install-pyproteolizard)
 * [**Data handle and exposed meta data**](#data-handle-and-exposed-meta-data)
 * [**Slices, frames, spectra**](#slices-frames-spectra)
