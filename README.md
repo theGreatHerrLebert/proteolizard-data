@@ -31,7 +31,7 @@ established, python-centric data science stack e.g. `scikit-learn`, `tensorflow`
 
 ---
 ### Build and install (py)proteolizard
-DUMMY.
+Right now, it's buggy and hard.
 
 ---
 ### Data handle and exposed meta data
