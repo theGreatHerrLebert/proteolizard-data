@@ -35,12 +35,22 @@ Right now, it's buggy and hard.
 
 ---
 ### Data handle and exposed meta data
-DUMMY.
+To fetch data from a bruker timsTOF file, use the `PyTimsDataHandle` object. It receives a path to a bruker .d folder 
+as it's only construction argument. On construction, it automatically reads experiment metadata which is generated 
+during acquisition and stored by bruker software in a sqlite database.
+```python
+from pyproteolizard.data import PyTimsDataHandle
+
+data_handle = PyTimsDataHandle('path/to/experiment.d')
+
+print(data_handle.meta_data)
+```
 
 ---
 ### Slices, frames, spectra
-DUMMY.
+Ion-mobility datasets can be interpreted as sparse 3D tensors (multidimensional matrices), having a retention-time,
+ion-mobility and mz-axis where entries represent measured ion-intensities.
 
 ---
-### Binning, vectorization, pointclouds
+### Binning, vectorization, dense representations
 DUMMY.
