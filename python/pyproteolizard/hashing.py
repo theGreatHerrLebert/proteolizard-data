@@ -264,7 +264,7 @@ class IsotopeReferenceSearch:
 
         return M[argmax_sim], max_sim, monoisotopic_mass, charge_state
 
-    def find_isotope_patterns(self, frame: TimsFrame, min_intensity=100, min_peaks=5, overlapping=True):
+    def find_isotope_patterns(self, frame: TimsFrame, min_intensity=100, min_peaks=5, overlapping=True, min_cosim=0.6):
         """
         :param frame:
         :param min_intensity:
@@ -286,7 +286,7 @@ class IsotopeReferenceSearch:
         r_list = []
 
         for scan, mz_bin, keys, vectors in zip(s, b, WK, F):
-            r_list.append(self.calculate_window_collision(scan, np.abs(mz_bin), keys, vectors))
+            r_list.append(self.calculate_window_collision(scan, np.abs(mz_bin), keys, vectors, min_cosim))
 
         A = np.hstack([np.expand_dims(s, axis=1), np.expand_dims(b, axis=1), np.array(r_list)])
         patterns = pd.DataFrame(A[A[:, 4] != -1], columns=['scan', 'bin', 'cosim', 'mz_mono', 'charge'])
