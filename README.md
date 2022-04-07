@@ -26,7 +26,7 @@ established, python-centric data science stack e.g. `scikit-learn`, `tensorflow`
 ## Navigation
 * [**Build and install (py)proteolizard-data**](#build-and-install-pyproteolizard)
 * [**Data handle and exposed meta data**](#data-handle-and-exposed-meta-data)
-* [**Franes, spectra, slices**](#frames-spectra-slices)
+* [**Frames, spectra, slices**](#frames-spectra-slices)
 * [**Binning, vectorization, pointclouds**](#binning-vectorization-pointclouds)
 
 ---
