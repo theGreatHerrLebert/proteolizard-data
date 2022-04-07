@@ -110,6 +110,9 @@ class MzSpectrum:
         else:
             self.spec_ptr = spec_pointer
 
+    def __repr__(self):
+        return f"frame: {self.frame_id()}, scan: {self.scan_id()}, sum intensity: {self.sum_intensity()}"
+
     def frame_id(self):
         return self.spec_ptr.getFrameId()
 
@@ -142,6 +145,16 @@ class MzSpectrum:
     def windows(self, window_length=10, overlapping=True, min_peaks=3, min_intensity=50):
         bins, windows = self.spec_ptr.windows(window_length, overlapping, min_peaks, min_intensity)
         return bins, [MzSpectrum(s) for s in windows]
+
+    def sum_intensity(self):
+        return np.sum(self.intensity())
+
+    def filter(self, mz_min=0, mz_max=2000, intensity_min=50):
+        values = list(zip(self.mz(), self.intensity()))
+        values = list(filter(lambda t: mz_min <= t[0] <= mz_max and intensity_min <= t[1], values))
+        mz, intensity = np.array([t[0] for t in values]), np.array([t[1] for t in values])
+
+        return MzSpectrum(None, self.frame_id(), self.scan_id(), mz, intensity)
 
 
 class MzVector:
