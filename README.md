@@ -85,6 +85,8 @@ frame = data_handle.get_frame(1)
 print(frame.data())
 ```
 
+This returns a pandas table:
+
 |    |   frame |   scan |       mz |   intensity |
 |---:|--------:|-------:|---------:|------------:|
 |  0 |       1 |     35 |  709.66  |           9 |
@@ -93,13 +95,45 @@ print(frame.data())
 |  3 |       1 |     41 |  946.875 |           9 |
 |  4 |       1 |     42 | 1191.3   |           9 |
 
-```python
-from pyproteolizard.data import PyTimsDataHandle, TimsFrame, MzSpectrum
-data_handle = PyTimsDataHandle('path/to/experiment.d')
 
-frame = data_handle.get_frame(1)
-print(frame.data())
+But you could also query a dimension individually:
+```python
+print(frame.inverse_ion_mobility()[:5])
 ```
+giving you the first five inverse ion-mobility values:
+
+array([1.59895005, 1.59787028, 1.59571042, 1.59246983, 1.59138941])
+
+Let us also have a look at splitting a frame into spectra:
+
+```python
+first_five_spectra = frame.get_spectra()[:5]
+print(first_five_spectra)
+```
+
+this retruns a list of MzSpectrum objects:
+
+[MzSpectrum(frame: 1, scan: 290, sum intensity: 10106),
+ MzSpectrum(frame: 1, scan: 291, sum intensity: 10783),
+ MzSpectrum(frame: 1, scan: 292, sum intensity: 9939),
+ MzSpectrum(frame: 1, scan: 293, sum intensity: 9518),
+ MzSpectrum(frame: 1, scan: 294, sum intensity: 12078)]
+
+Both TimsFrame and MzSpectrum override pythons `+` operator, making it possible to add together spectra or frames.
+Notice tough, that this is not a strictly associative and commutative operation, as resulting frame id and scan id will 
+be dependent on argument order!
+
+Finally, a data handle can also extract a collection of frames represented by an object TimsSlice, giving you the option
+to load abitrary blocks of a timsTOF experiments into memory. This can either be done by a set of frame ids or retention
+time start and end values, for example:
+```python
+# caution, retention times are stored in seconds
+slice = data_handle.get_slice_rt_range(25*60, 25*60 + 30)
+print(first_five_spectra)
+```
+TimsSlice(frame start: 14143, frame end: 14418)
+
+giving you half a minute of retention time, consisting both of precursor and fragment frames.
 
 ---
 ### Binning, vectorization, dense representations

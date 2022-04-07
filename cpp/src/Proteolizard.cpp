@@ -37,6 +37,7 @@ PYBIND11_MODULE(libproteolizard, h) {
             .def("getIntensities", [](MzSpectrumPL &self) {
                 return py::array(py::cast(self.intensity));
             })
+            .def(py::self + py::self)
             .def("vectorize", [](MzSpectrumPL &self, int resolution) {
                 return self.vectorize(resolution);
             })

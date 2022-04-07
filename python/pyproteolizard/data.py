@@ -111,7 +111,7 @@ class MzSpectrum:
             self.spec_ptr = spec_pointer
 
     def __repr__(self):
-        return f"frame: {self.frame_id()}, scan: {self.scan_id()}, sum intensity: {self.sum_intensity()}"
+        return f"MzSpectrum(frame: {self.frame_id()}, scan: {self.scan_id()}, sum intensity: {self.sum_intensity()})"
 
     def frame_id(self):
         return self.spec_ptr.getFrameId()
@@ -219,6 +219,10 @@ class TimsFrame:
         else:
             self.frame_ptr = frame_pointer
 
+    def __repr__(self):
+        return f"TimsFrame(id: {self.frame_id()}, num data-points: {self.mz().shape[0]}, sum intensity: " \
+               f"{np.sum(self.intensity())})"
+
     def frame_id(self):
         return self.frame_ptr.getFrameId()
 
@@ -308,6 +312,10 @@ class TimsSlice:
 
     def filter_ranged(self, mz_min=0, mz_max=2000, scan_min=0, scan_max=1000, intensity_min=0):
         return TimsSlice(self.__slice_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
+
+    def __repr__(self):
+        frames = self.get_precursor_frames()
+        return f"TimsSlice(frame start: {frames[0].frame_id()}, frame end: {frames[len(frames)-1].frame_id()})"
 
 
 class Points3D:
