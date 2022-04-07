@@ -136,8 +136,8 @@ TimsSlice(frame start: 14143, frame end: 14418)
 giving you half a minute of retention time, consisting both of precursor and fragment frames. You can either get
 collections of frames via methods `get_precursor_frames()` and `get_fragment_frames()` or 1D arrays of all data-points 
 with methods `get_precursor_points()` and `get_fragment_points()`. Lastly, TimsSlice, TimsFrame and MzSpectrum allow 
-you to fast-filter spectra or collections of spectra range queries. This is super useful to restrict an extraction to
-ranges of ion-mobilities, mass-over-charges or remove low intensity signals.
+you to fast-filter spectra or collections of spectra using range queries. This is super useful to restrict an extraction 
+to ranges of ion-mobilities, mass-over-charges or remove low intensity signals.
 
 ---
 ### Binning, vectorization, dense representations
