@@ -3,7 +3,7 @@
 
 ## Context
 Ion-mobility enhanced tandem-MS coupled to liquid chromatography is rapidly becoming the method of 
-choice for analysis of high-complexity samples generated in proteomics, lipidomics and metabolomics.
+choice for the analysis of high-complexity samples generated in proteomics, lipidomics and metabolomics.
 While information gain stemming from this acquisition scheme is tremendous, an additional recoding of 
 ion mobility makes data processing more challenging. The extra-dimension puts a lot of pressure on the 
 programmer to find solutions to raw-data processing that are fast enough to be useful.
@@ -26,7 +26,7 @@ established, python-centric data science stack e.g. `scikit-learn`, `tensorflow`
 ## Navigation
 * [**Build and install (py)proteolizard-data**](#build-and-install-pyproteolizard)
 * [**Data handle and exposed meta data**](#data-handle-and-exposed-meta-data)
-* [**Slices, frames, spectra**](#slices-frames-spectra)
+* [**Franes, spectra, slices**](#frames-spectra-slices)
 * [**Binning, vectorization, pointclouds**](#binning-vectorization-pointclouds)
 
 ---
@@ -74,9 +74,9 @@ What they have in common is the fact that features are highly local, meaning it 
 of a complete dataset to extract individual ones. 
 
 `proteolizard-data` uses individual frames as its smallest unit of data to be loaded into memory. A frame corresponds to 
-a single retention time with a collection of scans (non-normalized ion-mobility values), each scan holding a single 
+a single retention time with a collection of scans (non-normalized ion-mobility values), each scan holding one 
 mass spectrum. The frame can then easily be  split into spectra, but it also exposes a raw-data view that just contains
-1D arrays of indices and intensity values. Those arrays can always be exposed individually or grouped.
+1D arrays of indices and intensity values. Those arrays can always be retrieved individually or grouped.
 ```python
 from pyproteolizard.data import PyTimsDataHandle, TimsFrame, MzSpectrum
 data_handle = PyTimsDataHandle('path/to/experiment.d')
