@@ -4,10 +4,10 @@ with open("../README.md", "r") as fh:
     ld = fh.read()
 
 setup(
-    name='pyproteolizard',
+    name='proteolizarddata',
     version='0.1.0',
     description='python interface to scalable algorithms based on bruker timsTOF data',
-    packages=['pyproteolizard'],
+    packages=['proteolizarddata'],
     package_data={'proteolizard': ['proteolizard.so']},
     classifiers=[
         "Programming Language :: Python :: 3",
