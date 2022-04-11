@@ -262,20 +262,39 @@ class TimsFrame:
         return TimsFrame(self.frame_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
 
     def fold(self, resolution=2, width=4):
+        """
+        reduce number of scans in a given frame by summing over consecutive scans
+        :param resolution: binning in mz-dimension
+        :param width: number of consecutive scans to be integrated
+        :return: an integrated TimsFrame
+        """
         return TimsFrame(self.frame_ptr.fold(resolution, width))
 
     def get_spectra(self):
         spec_ptrs = self.frame_ptr.getMzSpectra()
         return [MzSpectrum(ptr) for ptr in spec_ptrs]
 
+    """
     def dense_windows(self, resolution=1, min_peaks=5, min_intensity=100, window_length=10, overlapping=True):
         return self.frame_ptr.getDenseWindows(resolution, min_peaks, min_intensity, window_length, overlapping)
+    """
 
+    """
     def get_hashing_blocks(self, resolution=1, min_peaks=3, min_intensity=50, window_length=10, overlapping=True):
         return self.frame_ptr.getHashingBlocks(resolution, min_peaks, min_intensity, window_length, overlapping)
+    """
 
-    def hashing_block_as_dense_tensor(self, resolution=1, min_peaks=3, min_intensity=50, window_length=10,
-                                      overlapping=True):
+    def get_dense_windows(self, resolution: int = 1, min_peaks: int = 3, min_intensity: int = 50,
+                          window_length: int = 10, overlapping: bool = True):
+        """
+        create a collection of dense windows that represent slices of mass spectra
+        :param resolution: binning of mz axis, will be 10^-resolution
+        :param min_peaks: minimum number of peaks in a window
+        :param min_intensity: minimum intensity of the highest peak in a window to be returned
+        :param window_length: length of a window along mz-axis in Dalton
+        :param overlapping: if true, overlapping windows will be created where windows are shifted by 1/2 window-length
+        :return: 1D scan-indices, 1D bin-indices, 2D dense vectors of windowed mass spectra in frame
+        """
 
         c, wi, s, b, i, v = self.frame_ptr.getHashingBlocks(resolution, min_peaks, min_intensity, window_length,
                                                             overlapping)
@@ -289,9 +308,9 @@ class TimsFrame:
 
     def data(self):
         return pd.DataFrame({'frame': np.repeat(self.frame_id(), self.mz().shape[0]),
-                             'scan':self.scan(),
-                             'mz':self.mz(),
-                             'intensity':self.intensity()})
+                             'scan': self.scan(),
+                             'mz': self.mz(),
+                             'intensity': self.intensity()})
 
 
 class TimsSlice:
