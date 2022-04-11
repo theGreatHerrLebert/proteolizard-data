@@ -39,7 +39,7 @@ To fetch data from a bruker timsTOF file, use the `PyTimsDataHandle` object. It 
 as it's only construction argument. On construction, it automatically reads experiment metadata which is generated 
 during acquisition and stored by bruker software in a sqlite database.
 ```python
-from pyproteolizard.data import PyTimsDataHandle
+from proteolizarddata.data import PyTimsDataHandle
 
 data_handle = PyTimsDataHandle('path/to/experiment.d')
 
@@ -78,7 +78,7 @@ a single retention time with a collection of scans (non-normalized ion-mobility 
 mass spectrum. The frame can then easily be  split into spectra, but it also exposes a raw-data view that just contains
 1D arrays of indices and intensity values. Those arrays can always be retrieved individually or grouped.
 ```python
-from pyproteolizard.data import PyTimsDataHandle, TimsFrame, MzSpectrum
+from proteolizarddata.data import PyTimsDataHandle, TimsFrame, MzSpectrum
 data_handle = PyTimsDataHandle('path/to/experiment.d')
 
 frame = data_handle.get_frame(1)
