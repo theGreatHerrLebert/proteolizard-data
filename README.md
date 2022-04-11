@@ -129,7 +129,7 @@ time start and end values, for example:
 ```python
 # caution, retention times are stored in seconds
 slice = data_handle.get_slice_rt_range(25*60, 25*60 + 30)
-print(first_five_spectra)
+print(slice)
 ```
 TimsSlice(frame start: 14143, frame end: 14418)
 
