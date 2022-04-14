@@ -7,7 +7,7 @@
 
 #include <tuple>
 #include <string>
-#include <math.h>
+#include <cmath>
 #include <map>
 #include <algorithm>
 #include <utility>

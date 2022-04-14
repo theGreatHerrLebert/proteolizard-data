@@ -5,7 +5,7 @@
 #ifndef CPP_SPECTRUM_H
 #define CPP_SPECTRUM_H
 
-#include <math.h>
+#include <cmath>
 
 #include <utility>
 #include "Eigen/Dense"

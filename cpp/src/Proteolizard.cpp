@@ -5,7 +5,6 @@
 #include <pybind11/eigen.h>
 #include <pybind11/operators.h>
 #include <string>
-#include <cmath>
 
 #include "Frame.h"
 #include "VectorizedSpectrum.h"
