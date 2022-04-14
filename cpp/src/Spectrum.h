@@ -43,7 +43,7 @@ MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSp
 
     // insert leftFrame values into map
     for (auto it = leftSpec.mz.begin(); it != leftSpec.mz.end(); ++it) {
-        int i = std::distance(leftSpec.mz.begin(), it);
+        auto i = std::distance(leftSpec.mz.begin(), it);
         auto index = leftSpec.mz[i];
         auto intensity = leftSpec.intensity[i];
         sumMap[index] = intensity;
@@ -51,7 +51,7 @@ MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSp
 
     // insert right frame values into map or sum
     for (auto it = rightSpec.mz.begin(); it != rightSpec.mz.end(); ++it) {
-        int i = std::distance(rightSpec.mz.begin(), it);
+        auto i = std::distance(rightSpec.mz.begin(), it);
         auto index = rightSpec.mz[i];
         auto intensity = rightSpec.intensity[i];
 
@@ -161,7 +161,7 @@ std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool over
 {
     std::map<int, MzSpectrumPL> splits;
 
-    for(int i = 0; i < this->mz.size(); i++) {
+    for(std::size_t i = 0; i < this->mz.size(); i++) {
 
         // get mz and intensity
         auto mmz = this->mz[i];
@@ -188,7 +188,7 @@ std::map<int, MzSpectrumPL> MzSpectrumPL::windows(double windowLength, bool over
     if(overlapping) {
         std::map<int, MzSpectrumPL> splitsOffset;
 
-        for (int i = 0; i < this->mz.size(); i++) {
+        for (std::size_t i = 0; i < this->mz.size(); i++) {
             auto mmz = this->mz[i];
             auto iintensity = this->intensity[i];
 

@@ -40,7 +40,7 @@ std::map<int, MzVectorPL> TimsFrameVectorizedPL::spectra() {
     
     // insert leftFrame values into map
     for (auto it = this->indices.begin(); it != this->indices.end(); ++it) {
-        int i = std::distance(this->indices.begin(), it);
+        auto i = std::distance(this->indices.begin(), it);
         auto scan = this->scans[i];
         auto index = this->indices[i];
         auto intensity = this->values[i];
@@ -67,7 +67,7 @@ TimsFrameVectorizedPL operator+(const TimsFrameVectorizedPL &leftFrame, const Ti
 
     // insert leftFrame values into map
     for (auto it = leftFrame.indices.begin(); it != leftFrame.indices.end(); ++it) {
-        int i = std::distance(leftFrame.indices.begin(), it);
+        auto i = std::distance(leftFrame.indices.begin(), it);
         auto scan = leftFrame.scans[i];
         auto index = leftFrame.indices[i];
         auto intensity = leftFrame.values[i];
@@ -76,7 +76,7 @@ TimsFrameVectorizedPL operator+(const TimsFrameVectorizedPL &leftFrame, const Ti
 
     // insert right frame values into map or sum
     for (auto it = rightFrame.indices.begin(); it != rightFrame.indices.end(); ++it) {
-        int i = std::distance(rightFrame.indices.begin(), it);
+        auto i = std::distance(rightFrame.indices.begin(), it);
         auto scan = rightFrame.scans[i];
         auto index = rightFrame.indices[i];
         auto intensity = rightFrame.values[i];

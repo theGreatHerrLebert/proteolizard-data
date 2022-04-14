@@ -94,7 +94,7 @@ TimsFramePL operator+(const TimsFramePL &leftFrame, const TimsFramePL &rightFram
 
     // insert leftFrame values into map
     for (auto it = leftFrame.mzs.begin(); it != leftFrame.mzs.end(); ++it) {
-        int i = std::distance(leftFrame.mzs.begin(), it);
+        auto i = std::distance(leftFrame.mzs.begin(), it);
         auto scan = leftFrame.scans[i];
         auto index = leftFrame.mzs[i];
         auto intensity = leftFrame.intensities[i];
@@ -103,7 +103,7 @@ TimsFramePL operator+(const TimsFramePL &leftFrame, const TimsFramePL &rightFram
 
     // insert right frame values into map or sum
     for (auto it = rightFrame.mzs.begin(); it != rightFrame.mzs.end(); ++it) {
-        int i = std::distance(rightFrame.mzs.begin(), it);
+        auto i = std::distance(rightFrame.mzs.begin(), it);
         auto scan = rightFrame.scans[i];
         auto index = rightFrame.mzs[i];
         auto intensity = rightFrame.intensities[i];
@@ -259,7 +259,7 @@ TimsFrameVectorizedPL TimsFramePL::vectorize(const int resolution) {
 
     for (auto it = this->mzs.begin(); it != this->mzs.end(); ++it) {
         
-        int i = std::distance(this->mzs.begin(), it);
+        auto i = std::distance(this->mzs.begin(), it);
         auto scan = this->scans[i];
         auto index = int(floor(round(this->mzs[i] * factor)));
         auto intensity = this->intensities[i];

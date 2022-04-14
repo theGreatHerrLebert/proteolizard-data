@@ -36,7 +36,7 @@ MzVectorPL operator+(const MzVectorPL &leftSpec, const MzVectorPL &rightSpec){
 
     // insert leftFrame values into map
     for (auto it = leftSpec.indices.begin(); it != leftSpec.indices.end(); ++it) {
-        int i = std::distance(leftSpec.indices.begin(), it);
+        auto i = std::distance(leftSpec.indices.begin(), it);
         auto index = leftSpec.indices[i];
         auto intensity = leftSpec.values[i];
         sumMap[index] = intensity;
@@ -44,7 +44,7 @@ MzVectorPL operator+(const MzVectorPL &leftSpec, const MzVectorPL &rightSpec){
 
     // insert right frame values into map or sum
     for (auto it = rightSpec.indices.begin(); it != rightSpec.indices.end(); ++it) {
-        int i = std::distance(rightSpec.indices.begin(), it);
+        auto i = std::distance(rightSpec.indices.begin(), it);
         auto index = rightSpec.indices[i];
         auto intensity = rightSpec.values[i];
 
