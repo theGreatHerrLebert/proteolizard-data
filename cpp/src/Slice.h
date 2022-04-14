@@ -7,7 +7,7 @@
 
 #include <tuple>
 #include <string>
-#include <cmath>
+#include <math.h>
 #include <map>
 #include <algorithm>
 #include <execution>
@@ -24,7 +24,7 @@ Points3D::Points3D(std::vector<int>& frames,
 std::vector<int>& scans,
 std::vector<double>& mzs,
 std::vector<double>& invIonMobs,
-std::vector<int>& intensities): frame(frames), scan(scans), mz(mzs),invIonMobility(invIonMobs), intensity(intensities){}
+std::vector<int>& intensities): frame(frames), scan(scans), intensity(intensities), invIonMobility(invIonMobs), mz(mzs) {}
 
 /**
  * @brief
