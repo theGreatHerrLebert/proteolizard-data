@@ -7,7 +7,7 @@
 
 #include <tuple>
 #include <string>
-#include <math.h>
+#include <cmath>
 #include <map>
 #include <algorithm>
 #include <execution>
@@ -24,7 +24,7 @@ Points3D::Points3D(std::vector<int>& frames,
 std::vector<int>& scans,
 std::vector<double>& mzs,
 std::vector<double>& invIonMobs,
-std::vector<int>& intensities): frame(frames), scan(scans), mz(mzs),invIonMobility(invIonMobs), intensity(intensities){};
+std::vector<int>& intensities): frame(frames), scan(scans), mz(mzs),invIonMobility(invIonMobs), intensity(intensities){}
 
 /**
  * @brief
@@ -39,7 +39,7 @@ struct TimsSlicePL {
     Points3D getPoints3D(bool precursor);
 };
 
-TimsSlicePL::TimsSlicePL(std::vector<TimsFramePL>& pf, std::vector<TimsFramePL>& ff): precursors(pf), fragments(ff) {};
+TimsSlicePL::TimsSlicePL(std::vector<TimsFramePL>& pf, std::vector<TimsFramePL>& ff): precursors(pf), fragments(ff) {}
 
 TimsSlicePL TimsSlicePL::filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin){
 

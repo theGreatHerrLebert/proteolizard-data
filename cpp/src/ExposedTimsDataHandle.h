@@ -53,7 +53,7 @@ public:
 ExposedTimsDataHandle::ExposedTimsDataHandle(std::string dp, std::string bp) : handle(get_tdh(dp, bp)) {
     datasetPath = dp;
     binaryPath = bp;
-};
+}
 
 TimsFramePL ExposedTimsDataHandle::getTimsFramePL(const int frameId) {
     // allocate buffer

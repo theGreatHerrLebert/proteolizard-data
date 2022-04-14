@@ -23,7 +23,7 @@ struct TimsFrameVectorizedPL {
     int frameId{}, resolution{}; // coordinates
     std::vector<int> scans, indices, values; // coordinates
 
-    TimsFrameVectorizedPL()= default;;
+    TimsFrameVectorizedPL()= default;
     // constructors
     TimsFrameVectorizedPL(int id, int res, std::vector<int>  scan, std::vector<int>  index, std::vector<int>  v):
     frameId(id), resolution(res), scans(std::move(scan)), indices(std::move(index)), values(std::move(v)){}
