@@ -133,7 +133,7 @@ TimsFrameVectorizedPL TimsFrameVectorizedPL::filterRanged(int scanMin, int scanM
     }
 
     // This guards for empty return
-    if(retScans.size() > 0)
+    if(!retScans.empty())
         return {this->frameId, this->resolution, retScans, retIndices, retValues};
 
     return {this->frameId, this->resolution, {(scanMin + scanMax) / 2}, {(indexMin + indexMax) / 2}, {0}};
