@@ -67,7 +67,7 @@ MzVectorPL operator+(const MzVectorPL &leftSpec, const MzVectorPL &rightSpec){
         retValues.push_back(value);   
    }
 
-    return MzVectorPL(leftSpec.frameId, leftSpec.scanId, leftSpec.resolution, retIndices, retValues);
+    return {leftSpec.frameId, leftSpec.scanId, leftSpec.resolution, retIndices, retValues};
 }
 
 #endif //CPP_VECTORIZED_SPECTRUM_H

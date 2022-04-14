@@ -130,7 +130,7 @@ TimsFramePL operator+(const TimsFramePL &leftFrame, const TimsFramePL &rightFram
         retValues.push_back(value);   
    }
 
-    return TimsFramePL(leftFrame.frameId, retScans, retIndices, retValues, {}, {});
+    return {leftFrame.frameId, retScans, retIndices, retValues, {}, {}};
 }
 
 /**

@@ -28,7 +28,7 @@ TimsDataHandle get_tdh(const std::string& dp, const std::string& bp){
     // need to translate SCAN to 1/K0
     DefaultScan2InvIonMobilityConverterFactory::setAsDefault<BrukerScan2InvIonMobilityConverterFactory, const char*>(bp.c_str());
 
-    return TimsDataHandle(dp);
+    return {dp};
 }
 
 /**
@@ -87,7 +87,7 @@ TimsFramePL ExposedTimsDataHandle::getTimsFramePL(const int frameId) {
         scans.push_back(scan_ids[peak_id]);
     }
 
-    return TimsFramePL(frameId, scans, mzs, intensities, tof, inv_ion_mobility);
+    return {frameId, scans, mzs, intensities, tof, inv_ion_mobility};
 }
 
 TimsSlicePL ExposedTimsDataHandle::getTimsSlicePL(std::vector<int>& precursorIds, std::vector<int>& fragmentIds){
