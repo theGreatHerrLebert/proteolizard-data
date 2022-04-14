@@ -22,7 +22,7 @@
  * @param bp binary path
  * @return a tims data handle
  */
-TimsDataHandle get_tdh(std::string dp, std::string bp){
+TimsDataHandle get_tdh(const std::string& dp, const std::string& bp){
     // need to translate TOF to MZ
     DefaultTof2MzConverterFactory::setAsDefault<BrukerTof2MzConverterFactory, const char*>(bp.c_str());
     // need to translate SCAN to 1/K0
@@ -38,19 +38,19 @@ class ExposedTimsDataHandle{
 private:
     TimsDataHandle handle;
     std::vector<TimsFramePL> getTimsFramesFiltered(std::vector<int> frameIds,
-                                                         const int scan_min, const int scan_max,
-                                                         const double mz_min, const double mz_max);
+                                                         int scan_min, int scan_max,
+                                                         double mz_min, double mz_max);
 public:
     // path to dataset, path to bruker binaries
     std::string datasetPath, binaryPath;
     // handle to read from raw data
-    ExposedTimsDataHandle(std::string dp, std::string bp);
+    ExposedTimsDataHandle(const std::string& dp, const std::string& bp);
 
-    TimsFramePL getTimsFramePL(const int frameId);
+    TimsFramePL getTimsFramePL(int frameId);
     TimsSlicePL getTimsSlicePL(std::vector<int>& precursorIds, std::vector<int>& fragmentIds);
 };
 
-ExposedTimsDataHandle::ExposedTimsDataHandle(std::string dp, std::string bp) : handle(get_tdh(dp, bp)) {
+ExposedTimsDataHandle::ExposedTimsDataHandle(const std::string& dp, const std::string& bp) : handle(get_tdh(dp, bp)) {
     datasetPath = dp;
     binaryPath = bp;
 }
