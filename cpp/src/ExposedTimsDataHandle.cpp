@@ -26,10 +26,10 @@ public:
     TimsDataHandle handle;
 };
 
-ExposedTimsDataHandle::ExposedTimsDataHandle(const std::string& dp, const std::string& bp) : handle_(std::make_unique<DataHandle>(dp, bp)) {
-    datasetPath = dp;
-    binaryPath = bp;
-}
+ExposedTimsDataHandle::ExposedTimsDataHandle(const std::string& dp, const std::string& bp) :
+    datasetPath(dp),
+    binaryPath(bp),
+    handle_(std::make_unique<DataHandle>(dp, bp)) {}
 
 ExposedTimsDataHandle::~ExposedTimsDataHandle() = default;
 
