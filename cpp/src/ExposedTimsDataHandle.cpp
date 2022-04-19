@@ -88,17 +88,3 @@ TimsSlicePL ExposedTimsDataHandle::getTimsSlicePL(std::vector<int>& precursorIds
 
     return {retPrecursors, retFragments};
 }
-
-std::vector<TimsFramePL> ExposedTimsDataHandle::getTimsFramesFiltered(std::vector<int> frameIds,
-                                                                      const int scanMin, const int scanMax,
-                                                                      const double mzMin,
-                                                                      const double mzMax) {
-    std::sort(frameIds.begin(), frameIds.end());
-    std::vector<TimsFramePL> result;
-    result.reserve(frameIds.size());
-
-    for(int id: frameIds)
-        result.push_back(getTimsFramePL(id).filterRanged(scanMin, scanMax, mzMin, mzMax));
-
-    return result;
-}

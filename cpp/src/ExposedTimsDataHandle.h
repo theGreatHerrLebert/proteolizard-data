@@ -21,10 +21,6 @@ public:
     std::string binaryPath;
 
 private:
-    std::vector<TimsFramePL> getTimsFramesFiltered(std::vector<int> frameIds,
-                                                   int scan_min, int scan_max,
-                                                   double mz_min, double mz_max);
-
     class DataHandle;
     std::unique_ptr<DataHandle> handle_;
 };
