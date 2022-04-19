@@ -21,7 +21,7 @@ find_package(SQLite3 REQUIRED)
 find_package(TBB REQUIRED)
 find_library(ZSTD NAMES zstd REQUIRED)
 
-include_directories("../../include/opentims/opentims++")
+include_directories("../../contrib/opentims/opentims++")
 include_directories(${Python3_INCLUDE_DIRS})
 include_directories(${SQLITE3_INCLUDE_DIRS})
 include_directories(${pybind11_INCLUDE_DIRS})
