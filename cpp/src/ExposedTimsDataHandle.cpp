@@ -1,6 +1,6 @@
 #include "ExposedTimsDataHandle.h"
 
-#include "../../include/opentims/opentims++/opentims_all.cpp"
+#include "../../contrib/opentims/opentims++/opentims_all.cpp"
 #include <cmath>
 #include <ostream>
 
