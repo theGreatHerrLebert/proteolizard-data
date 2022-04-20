@@ -274,16 +274,6 @@ class TimsFrame:
         spec_ptrs = self.frame_ptr.getMzSpectra()
         return [MzSpectrum(ptr) for ptr in spec_ptrs]
 
-    """
-    def dense_windows(self, resolution=1, min_peaks=5, min_intensity=100, window_length=10, overlapping=True):
-        return self.frame_ptr.getDenseWindows(resolution, min_peaks, min_intensity, window_length, overlapping)
-    """
-
-    """
-    def get_hashing_blocks(self, resolution=1, min_peaks=3, min_intensity=50, window_length=10, overlapping=True):
-        return self.frame_ptr.getHashingBlocks(resolution, min_peaks, min_intensity, window_length, overlapping)
-    """
-
     def get_dense_windows(self, resolution: int = 1, min_peaks: int = 3, min_intensity: int = 50,
                           window_length: int = 10, overlapping: bool = True):
         """
