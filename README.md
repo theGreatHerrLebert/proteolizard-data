@@ -31,8 +31,20 @@ established, python-centric data science stack e.g. `scikit-learn`, `tensorflow`
 
 ---
 ### Build and install (py)proteolizard
-Right now, it's buggy and hard.
+```sh
+shell> git clone --recursive https://github.com/theGreatHerrLebert/proteolizard-data
+shell> cd proteolizard-data
+```
 
+```sh
+shell> mkdir build && cd build
+shell> cmake ../cpp -DCMAKE_BUILD_TYPE=Release
+shell> make 
+```
+
+```sh
+shell> cmake --install . --prefix=some/prefix/path
+```
 ---
 ### Data handle and exposed meta data
 To fetch data from a bruker timsTOF file, use the `PyTimsDataHandle` object. It receives a path to a bruker .d folder 
