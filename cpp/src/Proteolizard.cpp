@@ -14,7 +14,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(libproteolizard, h) {
+PYBIND11_MODULE(libproteolizarddata, h) {
     h.doc() = "exposing fast timsTOF processing and access functions to be called from python";
 
     // ---------------- CLASS SPECTRUM ------------

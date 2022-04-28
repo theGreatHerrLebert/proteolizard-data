@@ -27,7 +27,7 @@ include_directories(${SQLITE3_INCLUDE_DIRS})
 include_directories(${pybind11_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
-add_library(proteolizard-data SHARED
+add_library(proteolizarddata SHARED
     src/Proteolizard.cpp
     src/VectorizedSpectrum.cpp
     src/Spectrum.cpp
@@ -44,16 +44,19 @@ set(ProteoLizardData_HEADER_FILES
     src/Slice.h
     src/ExposedTimsDataHandle.h
 )
-set_target_properties(proteolizard-data PROPERTIES PUBLIC_HEADER "${ProteoLizardData_HEADER_FILES}")
+set_target_properties(proteolizarddata PROPERTIES PUBLIC_HEADER "${ProteoLizardData_HEADER_FILES}")
 
-target_link_libraries(proteolizard-data TBB::tbb)
-target_link_libraries(proteolizard-data ${PYTHON_LIBRARIES})
-target_link_libraries(proteolizard-data SQLite::SQLite3)
-target_link_libraries(proteolizard-data ${ZSTD})
-target_link_libraries(proteolizard-data Eigen3::Eigen)
+target_link_libraries(proteolizarddata
+    PUBLIC
+        Eigen3::Eigen
+        ${PYTHON_LIBRARIES}
+        SQLite::SQLite3
+        TBB::tbb
+        ${ZSTD}
+)
 
 include(GNUInstallDirs)
-install(TARGETS proteolizard-data
+install(TARGETS proteolizarddata
     EXPORT                    ProteoLizardDataTargets
     LIBRARY DESTINATION       ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ProteoLizardData

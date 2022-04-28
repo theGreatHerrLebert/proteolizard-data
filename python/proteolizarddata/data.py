@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import sqlite3
-import libproteolizard as pl
+import libproteolizarddata as pl
 import opentims_bruker_bridge as obb
 import tensorflow as tf
 
