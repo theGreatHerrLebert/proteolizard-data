@@ -16,16 +16,14 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 find_package(Eigen3 REQUIRED)
 find_package(pybind11 REQUIRED)
-find_package(Python3 REQUIRED COMPONENTS Development)
 find_package(SQLite3 REQUIRED)
 find_package(TBB REQUIRED)
 find_library(ZSTD NAMES zstd REQUIRED)
 
 include_directories("../contrib/opentims/opentims++")
-include_directories(${Python3_INCLUDE_DIRS})
-include_directories(${SQLITE3_INCLUDE_DIRS})
-include_directories(${pybind11_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIRS})
+include_directories(${pybind11_INCLUDE_DIRS})
+include_directories(${SQLITE3_INCLUDE_DIRS})
 
 add_library(proteolizarddata SHARED
     src/Proteolizard.cpp
@@ -49,7 +47,6 @@ set_target_properties(proteolizarddata PROPERTIES PUBLIC_HEADER "${ProteoLizardD
 target_link_libraries(proteolizarddata
     PUBLIC
         Eigen3::Eigen
-        ${PYTHON_LIBRARIES}
         SQLite::SQLite3
         TBB::tbb
         ${ZSTD}
