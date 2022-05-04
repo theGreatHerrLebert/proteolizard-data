@@ -27,6 +27,9 @@ PYBIND11_MODULE(libproteolizarddata, h) {
             .def("getFrameId", [](MzSpectrumPL &self) {
                 return self.frameId;
             })
+            .def("filter", [](MzSpectrumPL &self, double mzMin, double mzMax, int intensityMin) {
+                    return self.filter(mzMin, mzMax, intensityMin);
+            })
             .def("getScanId", [](MzSpectrumPL &self) {
                 return self.scanId;
             })

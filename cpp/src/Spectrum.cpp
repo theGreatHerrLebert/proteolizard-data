@@ -75,6 +75,26 @@ MzVectorPL MzSpectrumPL::vectorize(int resolution) const{
     return MzVectorPL{resolution, this->frameId, this->scanId, indices, values};
 }
 
+MzSpectrumPL MzSpectrumPL::filter(double mzMin, double mzMax, int intensityMin) const {
+
+    std::vector<int> retIntensity;
+    std::vector<double> retMz;
+
+    // TODO: make this more efficient (binary search?)
+    for (std::size_t i = 0; i < this->mz.size(); i++) {
+
+        double mz = this->mz[i];
+        int intensity = this->intensity[i];
+
+        if ((mz >= mzMin) && (mz <= mzMax) && (intensity >= intensityMin)) {
+            retMz.push_back(mz);
+            retIntensity.push_back(intensity);
+        }
+    }
+
+    return {this->frameId, this->scanId, retMz, retIntensity};
+}
+
 MzSpectrumPL MzSpectrumPL::toResolution(int resolution) const{
 
     std::map<int, int> intensityMap;

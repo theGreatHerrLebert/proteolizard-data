@@ -16,6 +16,7 @@ public:
 
     [[nodiscard]] MzSpectrumPL toResolution(int resolution) const;
     [[nodiscard]] MzVectorPL vectorize(int resolution) const;
+    [[nodiscard]] MzSpectrumPL filter(double mzMin, double mzMax, int intensityMin) const;
 
     [[nodiscard]] std::map<int, MzSpectrumPL> windows(double windowLength, bool overlapping, int minPeaks, int minIntensity) const;
     [[nodiscard]] std::pair<std::vector<int>, std::vector<MzSpectrumPL>> exportWindows(double windowLength, bool overlapping,

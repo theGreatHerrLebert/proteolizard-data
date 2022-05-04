@@ -149,12 +149,8 @@ class MzSpectrum:
     def sum_intensity(self):
         return np.sum(self.intensity())
 
-    def filter(self, mz_min=0, mz_max=2000, intensity_min=50):
-        values = list(zip(self.mz(), self.intensity()))
-        values = list(filter(lambda t: mz_min <= t[0] <= mz_max and intensity_min <= t[1], values))
-        mz, intensity = np.array([t[0] for t in values]), np.array([t[1] for t in values])
-
-        return MzSpectrum(None, self.frame_id(), self.scan_id(), mz, intensity)
+    def filter(self, mz_min=0, mz_max=2000, intensity_min=25):
+        return MzSpectrum(self.spec_ptr.filter(mz_min, mz_max, intensity_min))
 
 
 class MzVector:
