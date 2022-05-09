@@ -88,3 +88,26 @@ TimsSlicePL ExposedTimsDataHandle::getTimsSlicePL(std::vector<int>& precursorIds
 
     return {retPrecursors, retFragments};
 }
+
+std::vector<double> ExposedTimsDataHandle::getGlobalMzAxis() {
+
+    // allocate buffer
+    const size_t buffer_size_needed = 4e5;
+    std::unique_ptr<uint32_t[]> tofs = std::make_unique<uint32_t[]>(buffer_size_needed);
+    std::unique_ptr<double[]> mz = std::make_unique<double[]>(buffer_size_needed);
+
+    std::vector<double> retM;
+    retM.reserve(buffer_size_needed);
+
+    for(auto i = 0; i < buffer_size_needed; i++)
+        tofs[i] = i;
+
+    if(mz != nullptr)
+        handle_->handle.tof2mz_converter->convert(1, mz.get(), tofs.get(), buffer_size_needed);
+
+    // copy
+    for(size_t peak_id = 0; peak_id < buffer_size_needed; peak_id++)
+        retM.push_back(mz[peak_id]);
+
+    return retM;
+}

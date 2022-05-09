@@ -37,9 +37,21 @@ class PyTimsDataHandle:
         return TimsFrame(frame_pointer)
 
     def get_slice(self, precursor_ids, fragment_ids):
+        """
+
+        :param precursor_ids:
+        :param fragment_ids:
+        :return:
+        """
         return TimsSlice(self.__handle.getSlice(precursor_ids, fragment_ids))
 
     def get_slice_rt_range(self, rt_min, rt_max):
+        """
+
+        :param rt_min:
+        :param rt_max:
+        :return:
+        """
         prec_ids, frag_ids = self.__get_frame_ids_by_type_rt_range(rt_min, rt_max)
         return self.get_slice(prec_ids, frag_ids)
 
@@ -51,6 +63,11 @@ class PyTimsDataHandle:
         return pd.read_sql_query("SELECT * from Precursors", sqlite3.connect(self.dp + "/analysis.tdf"))
 
     def frames_to_rts(self, frames: np.ndarray):
+        """
+
+        :param frames:
+        :return:
+        """
         d = dict(zip(self.meta_data.Id.values, self.meta_data.Time.values))
         return [d[x] for x in frames]
 
@@ -74,6 +91,14 @@ class PyTimsDataHandle:
         region = self.meta_data[(self.meta_data['Time'] >= rt_min) & (self.meta_data['Time'] <= rt_max)]
         return region[region['MsMsType'] != 0].Id.values
 
+    def get_global_mz_axis(self):
+        """
+
+        :return:
+        """
+        mz_axis = self.__handle.getGlobalMzAxis()
+        return dict(zip(np.arange(400_000), mz_axis))
+
     def __get_precursor_frame_ids(self):
         """
         :return: array of all precursor frame ids
@@ -95,6 +120,12 @@ class PyTimsDataHandle:
         return pd.read_sql_query("SELECT * FROM Frames", sqlite3.connect(self.dp + "/analysis.tdf"))
 
     def __get_frame_ids_by_type_rt_range(self, rt_start, rt_stop):
+        """
+
+        :param rt_start:
+        :param rt_stop:
+        :return:
+        """
         frames = self.meta_data[(rt_start <= self.meta_data.Time) & (self.meta_data.Time <= rt_stop)]
         return frames[frames.MsMsType == 0].Id.values, frames[frames.MsMsType != 0].Id.values
 
@@ -114,18 +145,34 @@ class MzSpectrum:
         return f"MzSpectrum(frame: {self.frame_id()}, scan: {self.scan_id()}, sum intensity: {self.sum_intensity()})"
 
     def frame_id(self):
+        """
+        :return:
+        """
         return self.spec_ptr.getFrameId()
 
     def scan_id(self):
+        """
+        :return:
+        """
         return self.spec_ptr.getScanId()
 
     def mz(self):
+        """
+        :return:
+        """
         return self.spec_ptr.getMzs()
 
     def intensity(self):
+        """
+        :return:
+        """
         return self.spec_ptr.getIntensities()
 
     def __add__(self, other):
+        """
+        :param other:
+        :return:
+        """
         return MzSpectrum(self.spec_ptr + other.spec_ptr)
 
     def vectorize(self, resolution: int = 2):
@@ -143,13 +190,29 @@ class MzSpectrum:
         return MzSpectrum(self.spec_ptr.toResolution(resolution))
 
     def windows(self, window_length=10, overlapping=True, min_peaks=3, min_intensity=50):
+        """
+        :param window_length:
+        :param overlapping:
+        :param min_peaks:
+        :param min_intensity:
+        :return:
+        """
         bins, windows = self.spec_ptr.windows(window_length, overlapping, min_peaks, min_intensity)
         return bins, [MzSpectrum(s) for s in windows]
 
     def sum_intensity(self):
+        """
+        :return:
+        """
         return np.sum(self.intensity())
 
     def filter(self, mz_min=0, mz_max=2000, intensity_min=25):
+        """
+        :param mz_min:
+        :param mz_max:
+        :param intensity_min:
+        :return:
+        """
         return MzSpectrum(self.spec_ptr.filter(mz_min, mz_max, intensity_min))
 
 
@@ -158,21 +221,40 @@ class MzVector:
         self.__vec = vec_pointer
 
     def frame_id(self):
+        """
+        :return:
+        """
         return self.__vec.getFrameId()
 
     def scan_id(self):
+        """
+        :return:
+        """
         return self.__vec.getScanId()
 
     def resolution(self):
+        """
+        :return:
+        """
         return self.__vec.getResolution()
 
     def indices(self):
+        """
+        :return:
+        """
         return self.__vec.getIndices()
 
     def values(self):
+        """
+        :return:
+        """
         return self.__vec.getValues()
 
     def __add__(self, other):
+        """
+        :param other:
+        :return:
+        """
         return MzVector(self.__vec + other.__vec)
 
 
@@ -181,24 +263,50 @@ class VectorizedTimsFrame:
         self.__frame = vec_frame_pointer
 
     def frame_id(self):
+        """
+        :return:
+        """
         return self.__frame.getFrameId()
 
     def resolution(self):
+        """
+        :return:
+        """
         return self.__frame.getResolution()
 
     def scans(self):
+        """
+        :return:
+        """
         return self.__frame.getScans()
 
     def values(self):
+        """
+        :return:
+        """
         return self.__frame.getValues()
 
     def indices(self):
+        """
+        :return:
+        """
         return self.__frame.getIndices()
 
     def filter_ranged(self, scan_min, scan_max, index_min, index_max, intensity_min):
+        """
+        :param scan_min:
+        :param scan_max:
+        :param index_min:
+        :param index_max:
+        :param intensity_min:
+        :return:
+        """
         return VectorizedTimsFrame(self.__frame.filterRanged(scan_min, scan_max, index_min, index_max, intensity_min))
 
     def get_spectra(self):
+        """
+        :return:
+        """
         return [MzVector(s) for s in self.__frame.getSpectra()]
 
     def __add__(self, other):
@@ -220,21 +328,39 @@ class TimsFrame:
                f"{np.sum(self.intensity())})"
 
     def frame_id(self):
+        """
+        :return:
+        """
         return self.frame_ptr.getFrameId()
 
     def scan(self):
+        """
+        :return:
+        """
         return self.frame_ptr.getScans()
 
     def mz(self):
+        """
+        :return:
+        """
         return self.frame_ptr.getMzs()
 
     def intensity(self):
+        """
+        :return:
+        """
         return self.frame_ptr.getIntensities()
 
     def tof(self):
+        """
+        :return:
+        """
         return self.frame_ptr.getTofs()
 
     def inverse_ion_mobility(self):
+        """
+        :return:
+        """
         return self.frame_ptr.getInverseMobilities()
 
     def __add__(self, other):
@@ -304,21 +430,44 @@ class TimsSlice:
         self.__slice_ptr = slice_ptr
 
     def get_precursor_frames(self):
+        """
+        :return:
+        """
         return [TimsFrame(x) for x in self.__slice_ptr.getPrecursors()]
 
     def get_fragment_frames(self):
+        """
+        :return:
+        """
         return [TimsFrame(x) for x in self.__slice_ptr.getFragments()]
 
     def get_precursor_points(self):
+        """
+        :return:
+        """
         return Points3D(self.__slice_ptr.getPoints(True)).get_points()
 
     def get_fragment_points(self):
+        """
+        :return:
+        """
         return Points3D(self.__slice_ptr.getPoints(False)).get_points()
 
     def filter_ranged(self, mz_min=0, mz_max=2000, scan_min=0, scan_max=1000, intensity_min=0):
+        """
+        :param mz_min:
+        :param mz_max:
+        :param scan_min:
+        :param scan_max:
+        :param intensity_min:
+        :return:
+        """
         return TimsSlice(self.__slice_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
 
     def __repr__(self):
+        """
+        :return:
+        """
         frames = self.get_precursor_frames()
         return f"TimsSlice(frame start: {frames[0].frame_id()}, frame end: {frames[len(frames)-1].frame_id()})"
 

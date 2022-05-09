@@ -25,7 +25,9 @@ public:
     friend MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec);
 
     int frameId{};
-    int scanId{}; // rt coordinate
+    // double retentionTime{};
+    int scanId{};
+    // double inv_ion_mobility{};
     std::vector<double> mz; // vector of mz values
     std::vector<int> intensity; // vector of intensities
 };

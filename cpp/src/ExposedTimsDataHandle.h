@@ -15,6 +15,7 @@ public:
 
     TimsFramePL getTimsFramePL(int frameId);
     TimsSlicePL getTimsSlicePL(std::vector<int>& precursorIds, std::vector<int>& fragmentIds);
+    std::vector<double> getGlobalMzAxis();
 
     // path to dataset, path to bruker binaries
     std::string datasetPath;

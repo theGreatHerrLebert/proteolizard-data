@@ -182,6 +182,10 @@ PYBIND11_MODULE(libproteolizarddata, h) {
                 TimsFramePL frame = self.getTimsFramePL(frameId);
                 return frame;
             })
+            .def("getGlobalMzAxis", [](ExposedTimsDataHandle &self){
+                std::vector<double> globalMz = self.getGlobalMzAxis();
+                return py::array(py::cast(globalMz));
+            })
             .def("getSlice", [](ExposedTimsDataHandle &self, std::vector<int> precursors, std::vector<int> fragments) {
                 TimsSlicePL slice = self.getTimsSlicePL(precursors, fragments);
                 return slice;
