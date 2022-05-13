@@ -1,7 +1,7 @@
 # proteolizard-data
 ### An object-oriented library of C++ classes and python-wrappers to seamlessly integrate timsTOF raw-data with python
 
-[plot](https://github.com/theGreatHerrLebert/proteolizard-data/logo.png)
+![](https://github.com/theGreatHerrLebert/proteolizard-data/logo.png)
 
 ## Context
 Ion-mobility enhanced tandem-MS coupled to liquid chromatography is rapidly becoming the method of 
