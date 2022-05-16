@@ -23,8 +23,9 @@ python, R and the JVM.
 are exposed to python via bindings created with the excellent [`pybind11`](https://github.com/pybind/pybind11) 
 library. The approach taken is different to that of [`timspy`](https://github.com/MatteoLacki/timspy) 
 or [`alphatims`](https://github.com/MannLabs/alphatims), focussing on convenient, easy-to-use
-classes that implement fast processing on dataset slice, frame or spectrum basis. It is built to 
-quickly explore timsTOF datasets or prototype ideas and can be easily integrated into the well 
+classes that implement fast processing on dataset slice, frame or spectrum basis. 
+If needed, it is possible to use both `opentims` or `alphatims` for data access and feed `proteolizard` classes from there. 
+The library is built to quickly explore timsTOF datasets or prototype ideas and can be easily integrated into the well 
 established, python-centric data science stack e.g. `scikit-learn`, `tensorflow` or `pytorch`.
 
 ## Navigation
