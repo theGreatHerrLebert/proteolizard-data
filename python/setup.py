@@ -8,7 +8,7 @@ setup(
     version='0.1.0',
     description='python interface to scalable algorithms based on bruker timsTOF data',
     packages=['proteolizarddata'],
-    package_data={'proteolizard': ['proteolizard.so']},
+    package_data={'proteolizarddata': ['proteolizarddata.so']},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v2 or later (GPLv3+)",
