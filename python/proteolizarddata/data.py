@@ -45,6 +45,9 @@ class PyTimsDataHandle:
         """
         return TimsSlice(self.__handle.getSlice(precursor_ids, fragment_ids))
 
+    def get_block(self, frame_ids):
+        return TimsBlock(self.__handle.getBlock(frame_ids))
+
     def get_slice_rt_range(self, rt_min, rt_max):
         """
 
@@ -493,3 +496,14 @@ class Points3D:
         intensity = self.__point_ptr.getIntensity()
 
         return pd.DataFrame({'frame': ids, 'scan': scans, 'inv_ion_mob': inv_ion_mob, 'mz': mz, 'intensity': intensity})
+
+
+class TimsBlock:
+    def __init__(self, block_ptr):
+        self.__block_ptr = block_ptr
+
+    def get_indices(self):
+        return self.__block_ptr.getIndices().T
+
+    def get_values(self):
+        return self.__block_ptr.getValues().T

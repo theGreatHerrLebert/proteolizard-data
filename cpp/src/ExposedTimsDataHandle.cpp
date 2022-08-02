@@ -109,3 +109,38 @@ std::vector<double> ExposedTimsDataHandle::getGlobalMzAxis() {
 
     return mz;
 }
+
+TimsBlockPL ExposedTimsDataHandle::getTimsBlockPL(std::vector<int> &frameIds) {
+    // allocate concrete vectors
+    std::vector<double> rts, mzs, inv_ion_mobility;
+    std::vector<int> frames, scans, intensities, tof;
+
+
+    for(auto frameId: frameIds){
+        // allocate buffer
+        const size_t buffer_size_needed = handle_->handle.max_peaks_in_frame();
+        std::unique_ptr<uint32_t[]> scan_ids = std::make_unique<uint32_t[]>(buffer_size_needed);
+        std::unique_ptr<uint32_t[]> intens = std::make_unique<uint32_t[]>(buffer_size_needed);
+        std::unique_ptr<uint32_t[]> tofs = std::make_unique<uint32_t[]>(buffer_size_needed);
+        std::unique_ptr<double[]> rt = std::make_unique<double[]>(buffer_size_needed);
+        std::unique_ptr<double[]> inv_ion_mob = std::make_unique<double[]>(buffer_size_needed);
+        std::unique_ptr<double[]> mz = std::make_unique<double[]>(buffer_size_needed);
+
+        // fetch
+        TimsFrame& frame = handle_->handle.get_frame(frameId);
+        frame.save_to_buffs(nullptr, scan_ids.get(), tofs.get(), intens.get(), mz.get(), inv_ion_mob.get(), rt.get());
+
+        // copy
+        for(size_t peak_id = 0; peak_id < frame.num_peaks; peak_id++) {
+            tof.push_back(tofs[peak_id]);
+            inv_ion_mobility.push_back(inv_ion_mob[peak_id]);
+            intensities.push_back(intens[peak_id]);
+            mzs.push_back(mz[peak_id]);
+            scans.push_back(scan_ids[peak_id]);
+            rts.push_back(rt[peak_id]);
+            frames.push_back(frameId);
+        }
+    }
+
+    return {frames, scans, tof, intensities, rts, inv_ion_mobility, mzs};
+}

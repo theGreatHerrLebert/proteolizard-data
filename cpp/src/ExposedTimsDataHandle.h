@@ -3,6 +3,7 @@
 
 #include "Frame.h"
 #include "Slice.h"
+#include "TimsBlock.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -15,6 +16,7 @@ public:
 
     TimsFramePL getTimsFramePL(int frameId);
     TimsSlicePL getTimsSlicePL(std::vector<int>& precursorIds, std::vector<int>& fragmentIds);
+    TimsBlockPL getTimsBlockPL(std::vector<int>& frameIds);
     std::vector<double> getGlobalMzAxis();
 
     // path to dataset, path to bruker binaries

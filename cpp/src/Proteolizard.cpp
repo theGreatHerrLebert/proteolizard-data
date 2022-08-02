@@ -11,6 +11,7 @@
 #include "Spectrum.h"
 #include "ExposedTimsDataHandle.h"
 #include "Slice.h"
+#include "TimsBlock.h"
 
 namespace py = pybind11;
 
@@ -178,6 +179,17 @@ PYBIND11_MODULE(libproteolizarddata, h) {
             .def("getValues", [](TimsFrameVectorizedPL &self) {
                 return py::array(py::cast(self.values));
             });
+            // -------------- CLASS TIMS-BLOCK ------------
+    py::class_<TimsBlockPL>(h, "TimsBlockPL")
+            // -------------- CONSTRUCTOR ---------------
+            .def(py::init<std::vector<int> &, std::vector<int> &, std::vector<int> &, std::vector<int> &,
+            std::vector<double> &, std::vector<double> &, std::vector<double> &>())
+            .def("getIndices", [](TimsBlockPL &self) {
+            return py::array(py::cast(self.getIndices()));
+            })
+            .def("getValues", [](TimsBlockPL &self) {
+            return py::array(py::cast(self.getValues()));
+            });
     // ---------------- CLASS TIMS-DATA-HANDLE ------------
     py::class_<ExposedTimsDataHandle>(h, "ExposedTimsDataHandle")
 
@@ -196,6 +208,10 @@ PYBIND11_MODULE(libproteolizarddata, h) {
             .def("getSlice", [](ExposedTimsDataHandle &self, std::vector<int> precursors, std::vector<int> fragments) {
                 TimsSlicePL slice = self.getTimsSlicePL(precursors, fragments);
                 return slice;
+            })
+            .def("getBlock", [](ExposedTimsDataHandle &self, std::vector<int> frameIds) {
+                auto block = self.getTimsBlockPL(frameIds);
+                return block;
             });
     // ---------------- CLASS TIMS-POINTS3D ------------
     py::class_<Points3D>(h, "Points3D")
