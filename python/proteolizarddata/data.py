@@ -96,8 +96,7 @@ class PyTimsDataHandle:
 
         :return:
         """
-        mz_axis = self.__handle.getGlobalMzAxis()
-        return dict(zip(np.arange(400_000), mz_axis))
+        return self.__handle.getGlobalMzAxis()
 
     def __get_precursor_frame_ids(self):
         """
@@ -418,10 +417,20 @@ class TimsFrame:
 
         return s.astype(np.int32), b.astype(np.int32), tf.sparse.to_dense(st)
 
+    def get_vectorized_windows(self, resolution: int = 1, min_peaks: int = 3, min_intensity: int = 50,
+                               window_length: int = 10, overlapping: bool = True):
+
+        scans, bins, windows = self.frame_ptr.getVectorizedWindows(resolution, min_peaks, min_intensity,
+                                                                   window_length, overlapping)
+
+        return scans, bins, [MzVector(x) for x in windows]
+
     def data(self):
         return pd.DataFrame({'frame': np.repeat(self.frame_id(), self.mz().shape[0]),
                              'scan': self.scan(),
+                             'inv_ion_mob': self.inverse_ion_mobility(),
                              'mz': self.mz(),
+                             'tof': self.tof(),
                              'intensity': self.intensity()})
 
 

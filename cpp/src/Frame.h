@@ -49,6 +49,8 @@ public:
 
     std::vector<MzSpectrumPL> exportSpectra();
 
+    std::pair<std::pair<std::vector<int>, std::vector<int>>, std::vector<MzVectorPL>> vectorizedWindows(int resolution,int minPeaksPerWindow,int minIntensity,double windowLength,bool overlapping);
+
     HashBlock getHashingBlocks(int resolution,int minPeaksPerWindow,int minIntensity,double windowLength,bool overlapping);
 
     Eigen::MatrixXd denseWindowMatrix(int resolution, int minPeaksPerWindow,

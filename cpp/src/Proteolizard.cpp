@@ -114,6 +114,13 @@ PYBIND11_MODULE(libproteolizarddata, h) {
 
                 return self.denseWindowMatrix(resolution, minPeaksPerWindow, minIntensity, windowLength, overlapping);
             })
+            .def("getVectorizedWindows", [](TimsFramePL &self, int resolution, int minPeaksPerWindow, int minIntensity,
+            double windowLength, bool overlapping){
+
+                auto r = self.vectorizedWindows(resolution, minPeaksPerWindow, minIntensity, windowLength, overlapping);
+
+                return py::make_tuple(py::array(py::cast(r.first.first)), py::array(py::cast(r.first.second)),r.second);
+            })
             .def("filterRanged",
                  [](TimsFramePL &self, int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin) {
                      return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);

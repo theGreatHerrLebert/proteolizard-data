@@ -33,6 +33,7 @@ ExposedTimsDataHandle::ExposedTimsDataHandle(const std::string& dp, const std::s
 
 ExposedTimsDataHandle::~ExposedTimsDataHandle() = default;
 
+
 TimsFramePL ExposedTimsDataHandle::getTimsFramePL(const int frameId) {
     // allocate buffer
     const size_t buffer_size_needed = handle_->handle.max_peaks_in_frame();
@@ -68,6 +69,7 @@ TimsFramePL ExposedTimsDataHandle::getTimsFramePL(const int frameId) {
     return {frameId, scans, mzs, intensities, tof, inv_ion_mobility};
 }
 
+
 TimsSlicePL ExposedTimsDataHandle::getTimsSlicePL(std::vector<int>& precursorIds, std::vector<int>& fragmentIds){
 
     std::vector<TimsFramePL> retPrecursors;
@@ -89,25 +91,21 @@ TimsSlicePL ExposedTimsDataHandle::getTimsSlicePL(std::vector<int>& precursorIds
     return {retPrecursors, retFragments};
 }
 
+/**
+ * call bruker binary on first frame to generate mz-axis from tof indices
+ * @return a double array of mz values, indices are tof-index
+ */
 std::vector<double> ExposedTimsDataHandle::getGlobalMzAxis() {
 
-    // allocate buffer
-    const size_t buffer_size_needed = 4e5;
-    std::unique_ptr<uint32_t[]> tofs = std::make_unique<uint32_t[]>(buffer_size_needed);
-    std::unique_ptr<double[]> mz = std::make_unique<double[]>(buffer_size_needed);
+    // allocate vector
+    const int buffer_size_needed = 4e5;
+    std::vector<uint32_t> tofs(buffer_size_needed);
+    std::vector<double> mz(buffer_size_needed);
 
-    std::vector<double> retM;
-    retM.reserve(buffer_size_needed);
-
-    for(auto i = 0; i < buffer_size_needed; i++)
+    for(int i = 0; i < buffer_size_needed; i++)
         tofs[i] = i;
 
-    if(mz != nullptr)
-        handle_->handle.tof2mz_converter->convert(1, mz.get(), tofs.get(), buffer_size_needed);
+    handle_->handle.tof2mz_converter->convert(1, mz.data(), tofs.data(), buffer_size_needed);
 
-    // copy
-    for(size_t peak_id = 0; peak_id < buffer_size_needed; peak_id++)
-        retM.push_back(mz[peak_id]);
-
-    return retM;
+    return mz;
 }

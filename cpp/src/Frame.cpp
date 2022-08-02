@@ -369,6 +369,28 @@ HashBlock TimsFramePL::getHashingBlocks(
     return {counter, rowIndex, retScanWindows, retBinWindows, retIndices, retValues};
 }
 
+std::pair<std::pair<std::vector<int>, std::vector<int>>, std::vector<MzVectorPL>> TimsFramePL::vectorizedWindows(
+        int resolution, int minPeaksPerWindow, int minIntensity,double windowLength, bool overlapping) {
+
+
+    // split frame into spectra
+    auto spectra = this->spectra();
+    std::vector<int> scans, bins;
+    std::vector<MzVectorPL> vectorizedWindows;
+
+    for(auto &[scan, spectrum]: spectra){
+        auto windows = spectrum.windows(windowLength, overlapping, minPeaksPerWindow, minIntensity);
+        for(auto &[bin, window]: windows){
+            vectorizedWindows.push_back(window.vectorize(resolution));
+            scans.push_back(scan);
+            bins.push_back(bin);
+        }
+    }
+
+    return {{scans, bins}, vectorizedWindows};
+
+}
+
 LambdaReturn::LambdaReturn(std::vector<int> s, std::vector<int> b, std::vector<int> i, std::vector<int> v, std::vector<int> sw, std::vector<int> bw):
     scans(std::move(s)),
     bins(std::move(b)),
