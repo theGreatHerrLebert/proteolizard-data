@@ -4,27 +4,59 @@ import sqlite3
 import libproteolizarddata as pl
 import opentims_bruker_bridge as obb
 import tensorflow as tf
+import os
+from abc import ABC, abstractmethod
+import warnings
 
+def requires(*attributes):
+    """
+    This decorator checks if an required attribute
+    exists.
+    If yes, decorated function is called. If not,
+    an error is raised.
+    """
+    def decorator(method):
+        def inner(calling_instance,*args,**kwargs):
+            for attr in attributes:
+                if getattr(calling_instance,attr,None) is None:
 
-class PyTimsDataHandle:
-    def __init__(self, dp):
+                    raise AttributeError(f"This PyTimsDataHandle instance (or subclass)"
+                                f"has no attribute '{attr}'. Check if an analysis database"
+                                f"or meta data file exists and the paths are set correctly"
+                                f"in the instantiation of this instance."
+                            )
+            return method(calling_instance,*args,**kwargs)
+        return inner
+    return decorator
+
+# TODO Currently, PyTimsDataHandle can be instantiated, since abstractmethods are missing
+class PyTimsDataHandle(ABC):
+    """
+    Abstract base class for TIMS data handlers
+    """
+    def __init__(self, dp,analysis_db_subpath:str = "analysis.tdf"):
         """
         construct a TimsDataHandle for simple fetching of data
         :param dp: data path to bruker TimsTOF experiment
         :param bp: binary path to bruker libtimsdata.* for hidden functionality call
+        :param analysis_db_path: subpath to experiment's analysis database
         """
         self.dp: str = dp
         self.bp: str = obb.get_appropriate_so_path()
+        self.analysis_db_subpath = analysis_db_subpath
 
-        self.precursor_frames: np.array = self.__get_precursor_frame_ids()
-        self.fragment_frames: np.array = self.__get_fragment_frame_ids()
-        self.meta_data = self.__get_meta_data()
+        # check if analysis database file exists at given path
+        analysis_db_path = f"{dp}/{analysis_db_subpath}"
+        if os.path.exists(analysis_db_path) and os.path.isfile(analysis_db_path):
+            # if yes store absolute path as attribute
+            self.analysis_db_path = analysis_db_path
 
         try:
             self.__handle = pl.ExposedTimsDataHandle(self.dp, self.bp)
 
         except Exception as e:
             print(e)
+
 
     def get_frame(self, frame_id):
         """
@@ -48,6 +80,7 @@ class PyTimsDataHandle:
     def get_block(self, frame_ids):
         return TimsBlock(self.__handle.getBlock(frame_ids))
 
+    @requires("meta_data")
     def get_slice_rt_range(self, rt_min, rt_max):
         """
 
@@ -58,13 +91,7 @@ class PyTimsDataHandle:
         prec_ids, frag_ids = self.__get_frame_ids_by_type_rt_range(rt_min, rt_max)
         return self.get_slice(prec_ids, frag_ids)
 
-    # TODO: move this out of the data handle, not needed for timsTOF interface
-    def get_selected_precursors(self):
-        """
-        :return: table of peaks chosen and fragmented (DDAExperiment) of all frames in experiment
-        """
-        return pd.read_sql_query("SELECT * from Precursors", sqlite3.connect(self.dp + "/analysis.tdf"))
-
+    @requires("meta_data")
     def frames_to_rts(self, frames: np.ndarray):
         """
 
@@ -74,6 +101,7 @@ class PyTimsDataHandle:
         d = dict(zip(self.meta_data.Id.values, self.meta_data.Time.values))
         return [d[x] for x in frames]
 
+    @requires("meta_data")
     def rt_range_to_precursor_frame_ids(self, rt_min: float, rt_max: float) -> np.array:
         """
         :param rt_min: start in rt dimension in SECONDS
@@ -84,6 +112,7 @@ class PyTimsDataHandle:
         region = self.meta_data[(self.meta_data['Time'] >= rt_min) & (self.meta_data['Time'] <= rt_max)]
         return region[region['MsMsType'] == 0].Id.values
 
+    @requires("meta_data")
     def rt_range_to_fragment_frame_ids(self, rt_min: float, rt_max: float) -> np.array:
         """
         :param rt_min: start in rt dimension in SECONDS
@@ -101,26 +130,61 @@ class PyTimsDataHandle:
         """
         return self.__handle.getGlobalMzAxis()
 
-    def __get_precursor_frame_ids(self):
+    @property
+    @requires("analysis_db_path")
+    def precursor_frames(self):
         """
-        :return: array of all precursor frame ids
+        Get precursor frames
         """
-        return pd.read_sql_query("SELECT * from Frames WHERE MsMsType = 0",
-                                 sqlite3.connect(self.dp + "/analysis.tdf")).Id.values
+        if getattr(self,"_precursor_frames",None) is None:
+            self.precursor_frames = pd.read_sql_query("SELECT * from Frames WHERE MsMsType = 0",
+                                                      sqlite3.connect(self.analysis_db_path)).Id.values
+        return self._precursor_frames
 
-    def __get_fragment_frame_ids(self):
+    @precursor_frames.setter
+    def precursor_frames(self,value):
         """
-        :return: array of all fragment frame ids
+        set precursor frames
         """
-        return pd.read_sql_query("SELECT * from Frames WHERE MsMsType != 0",
-                                 sqlite3.connect(self.dp + "/analysis.tdf")).Id.values
+        self._precursor_frames = value
 
-    def __get_meta_data(self):
+    @property
+    @requires("analysis_db_path")
+    def fragment_frames(self):
         """
-        :return: table of complete meta data of all frames in experiment
+        Get fragment frames
         """
-        return pd.read_sql_query("SELECT * FROM Frames", sqlite3.connect(self.dp + "/analysis.tdf"))
+        if getattr(self,"_fragment_frames",None) is None:
+            self.fragment_frames = pd.read_sql_query("SELECT * from Frames WHERE MsMsType != 0",
+                                                     sqlite3.connect(self.analysis_db_path)).Id.values
+        return self._fragment_frames
 
+    @fragment_frames.setter
+    def fragment_frames(self,value):
+        """
+        set fragment frames
+        """
+        self._fragment_frames = value
+
+    @property
+    @requires("analysis_db_path")
+    def meta_data(self):
+        """
+        Get meta data
+        """
+        if getattr(self,"_meta_data",None) is None:
+            self.meta_data = pd.read_sql_query("SELECT * FROM Frames",
+                                               sqlite3.connect(self.analysis_db_path))
+        return self._meta_data
+
+    @meta_data.setter
+    def meta_data(self,value):
+        """
+        set meta data
+        """
+        self._meta_data = value
+
+    @requires("meta_data")
     def __get_frame_ids_by_type_rt_range(self, rt_start, rt_stop):
         """
 
@@ -130,6 +194,35 @@ class PyTimsDataHandle:
         """
         frames = self.meta_data[(rt_start <= self.meta_data.Time) & (self.meta_data.Time <= rt_stop)]
         return frames[frames.MsMsType == 0].Id.values, frames[frames.MsMsType != 0].Id.values
+
+class PyTimsDataHandleDDA(PyTimsDataHandle):
+    """
+    Handler for data-dependent-acquisition LC-TIMS-MS² experiments
+    """
+    @requires("analysis_db_path")
+    def get_selected_precursors(self):
+        """
+        :return: table of peaks chosen and fragmented (DDAExperiment) of all frames in experiment
+        """
+        return pd.read_sql_query("SELECT * from Precursors", sqlite3.connect(self.dp + "/analysis.tdf"))
+
+    @requires("analysis_db_path")
+    def get_precursor_by_id(self, precursor_id:int):
+        """
+        Get data of precursor by its id in precursors table.
+
+        :param precursor_id (int): ID of precursor to get in Precursors table.
+        :return: DataFrame with precursor data
+        """
+        # replace makes sure NULL values are np.nan
+        return pd.read_sql_query(f"SELECT * from Precursors where Id={precursor_id}", \
+            sqlite3.connect(self.dp + "/analysis.tdf")).replace([None],[np.nan])
+
+class PyTimsDataHandleDIA(PyTimsDataHandle):
+    """
+    Handler for data-independent-acquisition LC-TIMS-MS² experiments
+    """
+    pass
 
 
 class MzSpectrum:
