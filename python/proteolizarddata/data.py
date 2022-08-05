@@ -131,6 +131,19 @@ class PyTimsDataHandleDDA(PyTimsDataHandle):
         :return: table of peaks chosen and fragmented (DDAExperiment) of all frames in experiment
         """
         return pd.read_sql_query("SELECT * from Precursors", sqlite3.connect(self.dp + "/analysis.tdf"))
+    
+    def get_precursor_by_id(self, precursor_id:int):
+        """
+        Get data of precursor by its id in precursors table.
+
+        :param precursor_id (int): ID of precursor to get in Precursors table.
+        :return: DataFrame with precursor data
+        """
+        # replace makes sure NULL values are np.nan
+        return pd.read_sql_query(f"SELECT * from Precursors where Id={precursor_id}", \
+            sqlite3.connect(self.dp + "/analysis.tdf")).replace([None],[np.nan])
+
+
 
 class PyTimsDataHandleDIA(PyTimsDataHandle):
     pass
