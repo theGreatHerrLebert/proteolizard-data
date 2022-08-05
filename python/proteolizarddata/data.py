@@ -4,9 +4,9 @@ import sqlite3
 import libproteolizarddata as pl
 import opentims_bruker_bridge as obb
 import tensorflow as tf
+from abc import ABC, @abstractmethod
 
-
-class PyTimsDataHandle:
+class PyTimsDataHandle(ABC):
     def __init__(self, dp):
         """
         construct a TimsDataHandle for simple fetching of data
@@ -57,13 +57,6 @@ class PyTimsDataHandle:
         """
         prec_ids, frag_ids = self.__get_frame_ids_by_type_rt_range(rt_min, rt_max)
         return self.get_slice(prec_ids, frag_ids)
-
-    # TODO: move this out of the data handle, not needed for timsTOF interface
-    def get_selected_precursors(self):
-        """
-        :return: table of peaks chosen and fragmented (DDAExperiment) of all frames in experiment
-        """
-        return pd.read_sql_query("SELECT * from Precursors", sqlite3.connect(self.dp + "/analysis.tdf"))
 
     def frames_to_rts(self, frames: np.ndarray):
         """
@@ -131,6 +124,16 @@ class PyTimsDataHandle:
         frames = self.meta_data[(rt_start <= self.meta_data.Time) & (self.meta_data.Time <= rt_stop)]
         return frames[frames.MsMsType == 0].Id.values, frames[frames.MsMsType != 0].Id.values
 
+class PyTimsDataHandleDDA(PyTimsDataHandle):
+    
+    def get_selected_precursors(self):
+        """
+        :return: table of peaks chosen and fragmented (DDAExperiment) of all frames in experiment
+        """
+        return pd.read_sql_query("SELECT * from Precursors", sqlite3.connect(self.dp + "/analysis.tdf"))
+
+class PyTimsDataHandleDIA(PyTimsDataHandle):
+    pass
 
 class MzSpectrum:
 
