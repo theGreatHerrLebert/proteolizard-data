@@ -152,7 +152,7 @@ class PyTimsDataHandleDDA(PyTimsDataHandle):
         """
         return pd.read_sql_query("SELECT * from Precursors", sqlite3.connect(self.dp + "/analysis.tdf"))
     
-    def get_precursor_by_id(self, precursor_id:int) -> pd.DataFrame:
+    def get_selected_precursor_by_id(self, precursor_id:int) -> pd.DataFrame:
         """
         Get data of precursor by its id in precursors table.
 
