@@ -19,15 +19,15 @@ class PyTimsDataHandle(ABC):
         self.precursor_frames: np.array = self.__get_precursor_frame_ids()
         self.fragment_frames: np.array = self.__get_fragment_frame_ids()
         self.meta_data = self.__get_meta_data()
-
+        self.pasef_meta_data = self._get_pasef_meta_data()
         try:
             self.__handle = pl.ExposedTimsDataHandle(self.dp, self.bp)
 
         except Exception as e:
             print(e)
-
-    @abstractmethod
+    
     @property
+    @abstractmethod
     def acquisition(self)->int:
         """
         Gets acquistion as integer:
@@ -126,6 +126,13 @@ class PyTimsDataHandle(ABC):
         """
         return pd.read_sql_query("SELECT * FROM Frames", sqlite3.connect(self.dp + "/analysis.tdf"))
 
+    @abstractmethod
+    def _get_pasef_meta_data(self):
+        """
+        :return: table of pasef meta data
+        """
+        pass
+
     def __get_frame_ids_by_type_rt_range(self, rt_start, rt_stop):
         """
 
@@ -160,9 +167,15 @@ class PyTimsDataHandleDDA(PyTimsDataHandle):
         :return: DataFrame with precursor data
         """
         # replace makes sure NULL values are np.nan
-        return pd.read_sql_query(f"SELECT * from Precursors where Id={precursor_id}", \
-            sqlite3.connect(self.dp + "/analysis.tdf")).replace([None],[np.nan])
+        return pd.read_sql_query(f"SELECT * from Precursors where Id={precursor_id}", 
+                                sqlite3.connect(self.dp + "/analysis.tdf")).replace([None],[np.nan])
 
+    def _get_pasef_meta_data(self):
+        """
+        :return: table of pasef meta data
+        """
+        return pd.read_sql_query("SELECT * from PasefFrameMsMsInfo",
+                                 sqlite3.connect(self.dp + "/analysis.tdf"))
 
 class PyTimsDataHandleDIA(PyTimsDataHandle):
     
@@ -173,6 +186,13 @@ class PyTimsDataHandleDIA(PyTimsDataHandle):
         :return int: 9 (DIA acquisition)
         """
         return 9
+    
+    def _get_pasef_meta_data(self):
+        """
+        :return: table of pasef meta data
+        """
+        return pd.read_sql_query("SELECT * from DiaFrameMsMsWindows",
+                                 sqlite3.connect(self.dp + "/analysis.tdf"))
     
 class MzSpectrum:
 
