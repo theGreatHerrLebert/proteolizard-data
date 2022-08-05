@@ -4,9 +4,9 @@ import sqlite3
 import libproteolizarddata as pl
 import opentims_bruker_bridge as obb
 import tensorflow as tf
+from abc import ABC, abstractmethod
 
-
-class PyTimsDataHandle:
+class PyTimsDataHandle(ABC):
     def __init__(self, dp):
         """
         construct a TimsDataHandle for simple fetching of data
@@ -19,12 +19,24 @@ class PyTimsDataHandle:
         self.precursor_frames: np.array = self.__get_precursor_frame_ids()
         self.fragment_frames: np.array = self.__get_fragment_frame_ids()
         self.meta_data = self.__get_meta_data()
-
+        self.pasef_meta_data = self._get_pasef_meta_data()
         try:
             self.__handle = pl.ExposedTimsDataHandle(self.dp, self.bp)
 
         except Exception as e:
             print(e)
+    
+    @property
+    @abstractmethod
+    def acquisition(self)->int:
+        """
+        Gets acquistion as integer:
+          8: ddaPasef
+          9: diaPasef
+
+        :return int: acquisition method
+        """
+        pass
 
     def get_frame(self, frame_id):
         """
@@ -58,13 +70,6 @@ class PyTimsDataHandle:
         prec_ids, frag_ids = self.__get_frame_ids_by_type_rt_range(rt_min, rt_max)
         return self.get_slice(prec_ids, frag_ids)
 
-    # TODO: move this out of the data handle, not needed for timsTOF interface
-    def get_selected_precursors(self):
-        """
-        :return: table of peaks chosen and fragmented (DDAExperiment) of all frames in experiment
-        """
-        return pd.read_sql_query("SELECT * from Precursors", sqlite3.connect(self.dp + "/analysis.tdf"))
-
     def frames_to_rts(self, frames: np.ndarray):
         """
 
@@ -92,7 +97,7 @@ class PyTimsDataHandle:
         """
         # extract rt frame region
         region = self.meta_data[(self.meta_data['Time'] >= rt_min) & (self.meta_data['Time'] <= rt_max)]
-        return region[region['MsMsType'] != 0].Id.values
+        return region[region['MsMsType'] == self.acquisition].Id.values
 
     def get_global_mz_axis(self):
         """
@@ -112,7 +117,7 @@ class PyTimsDataHandle:
         """
         :return: array of all fragment frame ids
         """
-        return pd.read_sql_query("SELECT * from Frames WHERE MsMsType != 0",
+        return pd.read_sql_query(f"SELECT * from Frames WHERE MsMsType == {self.acquisition}",
                                  sqlite3.connect(self.dp + "/analysis.tdf")).Id.values
 
     def __get_meta_data(self):
@@ -120,6 +125,13 @@ class PyTimsDataHandle:
         :return: table of complete meta data of all frames in experiment
         """
         return pd.read_sql_query("SELECT * FROM Frames", sqlite3.connect(self.dp + "/analysis.tdf"))
+
+    @abstractmethod
+    def _get_pasef_meta_data(self):
+        """
+        :return: table of pasef meta data
+        """
+        pass
 
     def __get_frame_ids_by_type_rt_range(self, rt_start, rt_stop):
         """
@@ -129,9 +141,59 @@ class PyTimsDataHandle:
         :return:
         """
         frames = self.meta_data[(rt_start <= self.meta_data.Time) & (self.meta_data.Time <= rt_stop)]
-        return frames[frames.MsMsType == 0].Id.values, frames[frames.MsMsType != 0].Id.values
+        return frames[frames.MsMsType == 0].Id.values, frames[frames.MsMsType == self.acquisition].Id.values
 
+class PyTimsDataHandleDDA(PyTimsDataHandle):
+    
+    @property
+    def acquisition(self) -> int:
+        """
+        gets acquisition as integer (8, DDA)
+        :return (int): 8 (DDA acquisition)
+        """
+        return 8
+    
+    def get_selected_precursors(self):
+        """
+        :return: table of peaks chosen and fragmented (DDAExperiment) of all frames in experiment
+        """
+        return pd.read_sql_query("SELECT * from Precursors", sqlite3.connect(self.dp + "/analysis.tdf"))
+    
+    def get_selected_precursor_by_id(self, precursor_id:int) -> pd.DataFrame:
+        """
+        Get data of precursor by its id in precursors table.
 
+        :param precursor_id (int): ID of precursor to get in Precursors table.
+        :return: DataFrame with precursor data
+        """
+        # replace makes sure NULL values are np.nan
+        return pd.read_sql_query(f"SELECT * from Precursors where Id={precursor_id}", 
+                                sqlite3.connect(self.dp + "/analysis.tdf")).replace([None],[np.nan])
+
+    def _get_pasef_meta_data(self):
+        """
+        :return: table of pasef meta data
+        """
+        return pd.read_sql_query("SELECT * from PasefFrameMsMsInfo",
+                                 sqlite3.connect(self.dp + "/analysis.tdf"))
+
+class PyTimsDataHandleDIA(PyTimsDataHandle):
+    
+    @property
+    def acquisition(self) -> int:
+        """
+        gets acquisition as integer (9, DIA)
+        :return int: 9 (DIA acquisition)
+        """
+        return 9
+    
+    def _get_pasef_meta_data(self):
+        """
+        :return: table of pasef meta data
+        """
+        return pd.read_sql_query("SELECT * from DiaFrameMsMsWindows",
+                                 sqlite3.connect(self.dp + "/analysis.tdf"))
+    
 class MzSpectrum:
 
     def __init__(self, spec_pointer, *args):
