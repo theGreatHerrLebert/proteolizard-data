@@ -32,8 +32,9 @@ add_library(proteolizarddata SHARED
     src/VectorizedFrame.cpp
     src/Frame.cpp
     src/Slice.cpp
-    src/ExposedTimsDataHandle.cpp
     src/TimsBlock.cpp
+    src/TimsBlockVectorized.cpp
+    src/ExposedTimsDataHandle.cpp
 )
 set(ProteoLizardData_HEADER_FILES
     src/VectorizedSpectrum.h
@@ -41,8 +42,9 @@ set(ProteoLizardData_HEADER_FILES
     src/VectorizedFrame.h
     src/Frame.h
     src/Slice.h
-    src/ExposedTimsDataHandle.h
     src/TimsBlock.h
+    src/TimsBlockVectorized.h
+    src/ExposedTimsDataHandle.h
 )
 set_target_properties(proteolizarddata PROPERTIES PUBLIC_HEADER "${ProteoLizardData_HEADER_FILES}")
 
