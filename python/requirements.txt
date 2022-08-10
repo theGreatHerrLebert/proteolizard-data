@@ -1,0 +1,12 @@
+setuptools>=58.1.0
+numpy>=1.17.2
+pandas>=1.4.1
+scikit-learn>=1.0.2
+scikit-learn
+scipy>=1.8.0
+tqdm~=4.62.3
+tensorflow>=2.8.0
+hdbscan~=0.8.28
+opentims_bruker_bridge
+tqdm
+pytest
