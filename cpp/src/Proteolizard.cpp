@@ -12,6 +12,7 @@
 #include "ExposedTimsDataHandle.h"
 #include "Slice.h"
 #include "TimsBlock.h"
+#include "TimsBlockVectorized.h"
 
 namespace py = pybind11;
 
@@ -189,7 +190,15 @@ PYBIND11_MODULE(libproteolizarddata, h) {
             })
             .def("getValues", [](TimsBlockPL &self) {
             return py::array(py::cast(self.getValues()));
-            });
+            })
+            .def("filterRanged", [](TimsBlockPL &self, int scanMin, int scanMax,
+                    double mzMin, double mzMax, int intensityMin) {
+            return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
+            })
+            ;
+    py::class_<TimsBlockVectorizedPL>(h, "TimsBlockVectorizedPL")
+            .def(py::init<int &, int &, std::vector<int> &, std::vector<int> &, std::vector<int> &, std::vector<int> &>())
+            ;
     // ---------------- CLASS TIMS-DATA-HANDLE ------------
     py::class_<ExposedTimsDataHandle>(h, "ExposedTimsDataHandle")
 

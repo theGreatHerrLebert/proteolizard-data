@@ -11,6 +11,9 @@ public:
     std::vector<std::vector<int>> getIndices();
     std::vector<std::vector<double>> getValues();
 
+    TimsBlockPL filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin);
+    TimsFrameVectorizedPL getFrameVectorized(int resolution);
+
     std::vector<int> frame;
     std::vector<int> scan;
     std::vector<int> tof;

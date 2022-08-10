@@ -6,6 +6,7 @@ import opentims_bruker_bridge as obb
 import tensorflow as tf
 from abc import ABC, abstractmethod
 
+
 class PyTimsDataHandle(ABC):
     def __init__(self, dp):
         """
@@ -28,7 +29,7 @@ class PyTimsDataHandle(ABC):
     
     @property
     @abstractmethod
-    def acquisition(self)->int:
+    def acquisition(self) -> int:
         """
         Gets acquistion as integer:
           8: ddaPasef
@@ -143,6 +144,7 @@ class PyTimsDataHandle(ABC):
         frames = self.meta_data[(rt_start <= self.meta_data.Time) & (self.meta_data.Time <= rt_stop)]
         return frames[frames.MsMsType == 0].Id.values, frames[frames.MsMsType == self.acquisition].Id.values
 
+
 class PyTimsDataHandleDDA(PyTimsDataHandle):
     
     @property
@@ -177,6 +179,7 @@ class PyTimsDataHandleDDA(PyTimsDataHandle):
         return pd.read_sql_query("SELECT * from PasefFrameMsMsInfo",
                                  sqlite3.connect(self.dp + "/analysis.tdf"))
 
+
 class PyTimsDataHandleDIA(PyTimsDataHandle):
     
     @property
@@ -193,7 +196,8 @@ class PyTimsDataHandleDIA(PyTimsDataHandle):
         """
         return pd.read_sql_query("SELECT * from DiaFrameMsMsWindows",
                                  sqlite3.connect(self.dp + "/analysis.tdf"))
-    
+
+
 class MzSpectrum:
 
     def __init__(self, spec_pointer, *args):
@@ -375,6 +379,12 @@ class VectorizedTimsFrame:
 
     def __add__(self, other):
         return VectorizedTimsFrame(self.__frame + other.frame_ptr)
+
+    def data(self):
+        return pd.DataFrame({'frame': np.repeat(self.frame_id(), self.indices().shape[0]),
+                             'scan': self.scans(),
+                             'indices': self.indices(),
+                             'values': self.values()})
 
 
 class TimsFrame:
@@ -569,3 +579,14 @@ class TimsBlock:
 
     def get_values(self):
         return self.__block_ptr.getValues().T
+
+    def filter_ranged(self, mz_min=0, mz_max=2000, scan_min=0, scan_max=1000, intensity_min=0):
+        """
+        :param mz_min:
+        :param mz_max:
+        :param scan_min:
+        :param scan_max:
+        :param intensity_min:
+        :return:
+        """
+        return TimsBlock(self.__block_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
