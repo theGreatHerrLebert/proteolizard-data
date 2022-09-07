@@ -142,7 +142,7 @@ TimsFramePL TimsFramePL::filterRanged(int scanMin, int scanMax, double mzMin, do
     if(!retScan.empty())
         return TimsFramePL(this->frameId, retScan, retMz, retIntensity, retTof, retInv);
 
-    return TimsFramePL(this->frameId, {(scanMin + scanMax) / 2}, {(mzMin + mzMax) / 2}, {0}, {1}, {1.0});
+    return TimsFramePL(this->frameId, {-1}, {-1}, {-1}, {-1}, {-1});
 }
 
 TimsFramePL TimsFramePL::fold(const int resolution, const int width) {

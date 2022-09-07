@@ -5,7 +5,7 @@ import libproteolizarddata as pl
 import opentims_bruker_bridge as obb
 import tensorflow as tf
 from abc import ABC, abstractmethod
-
+from typing import List
 
 class PyTimsDataHandle(ABC):
     def __init__(self, dp):
@@ -15,18 +15,22 @@ class PyTimsDataHandle(ABC):
         :param bp: binary path to bruker libtimsdata.* for hidden functionality call
         """
         self.dp: str = dp
-        self.bp: str = obb.get_appropriate_so_path()
+        self.bp: List[str] = obb.get_so_paths()
 
         self.precursor_frames: np.array = self.__get_precursor_frame_ids()
         self.fragment_frames: np.array = self.__get_fragment_frame_ids()
         self.meta_data = self.__get_meta_data()
         self.pasef_meta_data = self._get_pasef_meta_data()
-        try:
-            self.__handle = pl.ExposedTimsDataHandle(self.dp, self.bp)
+        for so_path in self.bp:
+            appropriate_found = False
+            try:
+                self.__handle = pl.ExposedTimsDataHandle(self.dp, so_path)
+                appropriate_found = True
+                break
+            except Exception as e:
+                continue
+        assert appropriate_found==True, "No appropriate opentims_bruker_bridge could be found for your system"
 
-        except Exception as e:
-            print(e)
-    
     @property
     @abstractmethod
     def acquisition(self) -> int:
@@ -146,7 +150,7 @@ class PyTimsDataHandle(ABC):
 
 
 class PyTimsDataHandleDDA(PyTimsDataHandle):
-    
+
     @property
     def acquisition(self) -> int:
         """
@@ -154,13 +158,13 @@ class PyTimsDataHandleDDA(PyTimsDataHandle):
         :return (int): 8 (DDA acquisition)
         """
         return 8
-    
+
     def get_selected_precursors(self):
         """
         :return: table of peaks chosen and fragmented (DDAExperiment) of all frames in experiment
         """
         return pd.read_sql_query("SELECT * from Precursors", sqlite3.connect(self.dp + "/analysis.tdf"))
-    
+
     def get_selected_precursor_by_id(self, precursor_id:int) -> pd.DataFrame:
         """
         Get data of precursor by its id in precursors table.
@@ -169,7 +173,7 @@ class PyTimsDataHandleDDA(PyTimsDataHandle):
         :return: DataFrame with precursor data
         """
         # replace makes sure NULL values are np.nan
-        return pd.read_sql_query(f"SELECT * from Precursors where Id={precursor_id}", 
+        return pd.read_sql_query(f"SELECT * from Precursors where Id={precursor_id}",
                                 sqlite3.connect(self.dp + "/analysis.tdf")).replace([None],[np.nan])
 
     def _get_pasef_meta_data(self):
@@ -181,7 +185,7 @@ class PyTimsDataHandleDDA(PyTimsDataHandle):
 
 
 class PyTimsDataHandleDIA(PyTimsDataHandle):
-    
+
     @property
     def acquisition(self) -> int:
         """
@@ -189,7 +193,7 @@ class PyTimsDataHandleDIA(PyTimsDataHandle):
         :return int: 9 (DIA acquisition)
         """
         return 9
-    
+
     def _get_pasef_meta_data(self):
         """
         :return: table of pasef meta data
