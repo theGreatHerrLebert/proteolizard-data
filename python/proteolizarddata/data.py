@@ -590,3 +590,39 @@ class TimsBlock:
         :return:
         """
         return TimsBlock(self.__block_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
+
+    def vectorized(self, resolution: int = 2):
+        """
+        :param resolution:
+        :return:
+        """
+        return TimsBlockVectorized(self.__block_ptr.getTimsBlockVectorized(resolution))
+
+
+class TimsBlockVectorized:
+    def __init__(self, block_ptr):
+        self.__block_ptr = block_ptr
+
+    def data(self):
+        return self.__block_ptr.getData().T
+
+    def get_zero_indexed_tensor(self):
+        data = self.__block_ptr.getData().T
+        rt_indices = data[:, 0]
+        sc_indices = data[:, 1] - np.min(data[:, 1])
+        mz_indices = data[:, 2] - np.min(data[:, 2])
+        values = data[:, 3].astype(np.float32)
+
+        return tf.sparse.SparseTensor(indices=np.c_[rt_indices, sc_indices, mz_indices], values=values,
+                                      dense_shape=(rt_indices.max()+1, sc_indices.max()+1, mz_indices.max()+1))
+
+    def filter_ranged(self, mz_min=0, mz_max=2000, scan_min=0, scan_max=1000, intensity_min=0):
+        """
+        :param mz_min:
+        :param mz_max:
+        :param scan_min:
+        :param scan_max:
+        :param intensity_min:
+        :return:
+        """
+        return TimsBlockVectorized(self.__block_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))

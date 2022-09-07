@@ -1,5 +1,8 @@
 #include "TimsBlock.h"
+#include "TimsBlockVectorized.h"
 
+#include <set>
+#include <cmath>
 #include <algorithm>
 
 TimsBlockPL::TimsBlockPL(std::vector<int> frames, std::vector<int> scans, std::vector<int> tofs, std::vector<int> intensities,
@@ -41,4 +44,55 @@ TimsBlockPL TimsBlockPL::filterRanged(int scanMin, int scanMax, double mzMin, do
     }
 
     return TimsBlockPL(filteredFrame, filteredScan, filteredTof, filteredIntensity, filteredRetentionTime, filteredInvIonMobility, filteredMz);
+}
+
+TimsBlockVectorizedPL TimsBlockPL::getBlockVectorized(int resolution) {
+
+    std::set<int> frameSet;
+    for(auto i : this->frame)
+    {
+        frameSet.insert(i);
+    }
+
+    int counter = 0;
+    std::map<int, int> frameToIndex;
+    for(auto frameIdx: frameSet)
+    {
+        frameToIndex[frameIdx] = counter;
+        counter++;
+    }
+
+    std::map<std::tuple<int, int, int>, int> intensityMap;
+
+    for (int i = 0; i < this->frame.size(); i++) {
+        std::tuple<int, int, int> key = std::make_tuple(frameToIndex[this->frame[i]], this->scan[i], int(round(this->mz[i] * pow(10, resolution))));
+        if(intensityMap.contains(key))
+        {
+            intensityMap[key] += this->intensity[i];
+        }
+        else
+        {
+            intensityMap[key] = this->intensity[i];
+        }
+    }
+
+    std::vector<int> frameIndices;
+    std::vector<int> scanIndices;
+    std::vector<int> mzIndices;
+    std::vector<int> intensityIndices;
+
+    frameIndices.reserve(intensityMap.size());
+    scanIndices.reserve(intensityMap.size());
+    mzIndices.reserve(intensityMap.size());
+    intensityIndices.reserve(intensityMap.size());
+
+    for(auto entry : intensityMap)
+    {
+        frameIndices.push_back(std::get<0>(entry.first));
+        scanIndices.push_back(std::get<1>(entry.first));
+        mzIndices.push_back(std::get<2>(entry.first));
+        intensityIndices.push_back(entry.second);
+    }
+
+    return TimsBlockVectorizedPL(this->frame.at(0), this->frame.at(this->frame.size()-1), frameIndices, scanIndices, mzIndices, intensityIndices);
 }

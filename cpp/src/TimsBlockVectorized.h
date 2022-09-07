@@ -18,6 +18,9 @@ public:
             std::vector<int> intensity
     );
 
+    TimsBlockVectorizedPL filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin);
+    std::vector<std::vector<int>> getData();
+
     int frameIdxStart;
     int frameIdxStop;
     std::vector<int> frameIndices;

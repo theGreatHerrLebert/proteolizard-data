@@ -195,9 +195,19 @@ PYBIND11_MODULE(libproteolizarddata, h) {
                     double mzMin, double mzMax, int intensityMin) {
             return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
             })
+            .def("getTimsBlockVectorized", [](TimsBlockPL &self, int resolution) {
+            return self.getBlockVectorized(resolution);
+            })
             ;
     py::class_<TimsBlockVectorizedPL>(h, "TimsBlockVectorizedPL")
             .def(py::init<int &, int &, std::vector<int> &, std::vector<int> &, std::vector<int> &, std::vector<int> &>())
+            .def("getData", [](TimsBlockVectorizedPL &self) {
+                return py::array(py::cast(self.getData()));
+            })
+            .def("filterRanged", [](TimsBlockVectorizedPL &self, int scanMin, int scanMax, int indexMin, int indexMax,
+                                    int intensityMin) {
+                return self.filterRanged(scanMin, scanMax, indexMin, indexMax, intensityMin);
+            })
             ;
     // ---------------- CLASS TIMS-DATA-HANDLE ------------
     py::class_<ExposedTimsDataHandle>(h, "ExposedTimsDataHandle")

@@ -2,6 +2,7 @@
 #define CPP_TIMS_BLOCK_H
 
 #include "Frame.h"
+#include "TimsBlockVectorized.h"
 
 class TimsBlockPL {
 public:
@@ -12,7 +13,7 @@ public:
     std::vector<std::vector<double>> getValues();
 
     TimsBlockPL filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin);
-    TimsFrameVectorizedPL getFrameVectorized(int resolution);
+    TimsBlockVectorizedPL getBlockVectorized(int resolution);
 
     std::vector<int> frame;
     std::vector<int> scan;
