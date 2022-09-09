@@ -514,8 +514,14 @@ class TimsFrame:
 
 
 class TimsSlice:
-    def __init__(self, slice_ptr):
-        self.__slice_ptr = slice_ptr
+    def __init__(self, slice_ptr, *args):
+
+        if len(args) > 0:
+            precursors, fragments = args
+            self.__slice_ptr = pl.TimsSlicePL(precursors, fragments)
+
+        else:
+            self.__slice_ptr = slice_ptr
 
     def get_precursor_frames(self):
         """
