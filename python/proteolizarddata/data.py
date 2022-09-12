@@ -622,20 +622,29 @@ class TimsSliceVectorized:
         return f"TimsSliceVectorized(frame start: {frames[0].frame_id()}, frame end: {frames[len(frames)-1].frame_id()})"
 
     def get_zero_indexed_sparse_tensor(self, precursor=True, zero_index_mz=True):
+        """
+        translate vectorized point indices into sparse tensor representation
+        :param precursor: if true, return a sparse tensor of precursor frames, otherwise fragments
+        :param zero_index_mz: if true, mz indices will be zero-indexed as well
+        :return: a sparse tensor of either precursor or fragment frames
+        """
 
         if precursor:
             data = self.get_precursor_points()
         else:
             data = self.get_fragment_points()
 
+        # need to translate frame ids to zero-indexed
         frames = data['frame'].values
         unique_frames = np.sort(np.unique(frames))
         f_dict = dict(np.c_[unique_frames, np.arange(unique_frames.shape[0])])
 
+        # need to translate scan ids to zero-indexed
         scans = data['scan'].values
         unique_scans = np.sort(np.unique(scans))
         s_dict = dict(np.c_[unique_scans, np.arange(unique_scans.shape[0])])
 
+        # potentially remove mz offset
         if zero_index_mz:
             indices = data.indices.values - np.min(data.indices.values)
         else:
@@ -657,7 +666,7 @@ class TimsSliceVectorized:
 
         st = tf.sparse.SparseTensor(indices=idx, values=data['values'].astype(np.float32), dense_shape=np.max(idx, axis=0) + 1)
 
-        return st
+        return st, unique_frames[0], unique_frames[-1], unique_scans[0], indexed_scans[-1]
 
 
 class Points3D:
