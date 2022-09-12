@@ -11,6 +11,7 @@
 #include "Spectrum.h"
 #include "ExposedTimsDataHandle.h"
 #include "Slice.h"
+#include "SliceVectorized.h"
 #include "TimsBlock.h"
 #include "TimsBlockVectorized.h"
 
@@ -259,6 +260,31 @@ PYBIND11_MODULE(libproteolizarddata, h) {
                 py::array a = py::cast(self.intensity);
                 return a;
             });
+
+    // ---------------- CLASS TIMS-POINTS3D ------------
+    py::class_<Points3DVectorized>(h, "Points3DVectorized")
+
+    // -------------- CONSTRUCTOR ---------------
+    .def(py::init<std::vector<int> &, std::vector<int> &, std::vector<int> &, std::vector<int> &>())
+
+    // -------------- MEMBER ---------------
+    .def("getFrames", [](Points3DVectorized &self) {
+    py::array a = py::cast(self.frame);
+    return a;
+    })
+    .def("getScans", [](Points3DVectorized &self) {
+    py::array a = py::cast(self.scan);
+    return a;
+    })
+    .def("getMz", [](Points3DVectorized &self) {
+    py::array a = py::cast(self.mz);
+    return a;
+    })
+    .def("getIntensity", [](Points3DVectorized &self) {
+    py::array a = py::cast(self.intensity);
+    return a;
+    });
+
     // -------------- CLASS TIMS-SLICE ------------
     py::class_<TimsSlicePL>(h, "TimsSlicePL")
 
@@ -276,7 +302,28 @@ PYBIND11_MODULE(libproteolizarddata, h) {
                  [](TimsSlicePL &self, int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin) {
                      return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
                  })
+             .def("getVectorizedSlice", [](TimsSlicePL &self, int resolution) {
+                 return self.getVectorizedSlice(resolution);
+             })
             .def("getPoints", [](TimsSlicePL &self, bool precursor) {
                 return self.getPoints3D(precursor);
             });
+
+    // -------------- CLASS TIMS-SLICE-VECTORIZED ------------
+    py::class_<TimsSliceVectorizedPL>(h, "TimsSliceVectorizedPL")
+
+            // -------------- CONSTRUCTOR ---------------
+           .def(py::init<std::vector<TimsFrameVectorizedPL>&, std::vector<TimsFrameVectorizedPL> &>())
+           .def("getPrecursors", [](TimsSliceVectorizedPL &self) {
+               return self.precursors;
+           })
+           .def("getFragment", [](TimsSliceVectorizedPL &self) {
+               return self.fragments;
+           })
+           .def("filterRanged", [](TimsSliceVectorizedPL &self, int scanMin, int scanMax, int mzMin, int mzMax, int intensityMin) {
+               return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
+           })
+           .def("getPoints", [](TimsSliceVectorizedPL &self, bool precursor) {
+               return self.getPoints3D(precursor);
+           });
 }

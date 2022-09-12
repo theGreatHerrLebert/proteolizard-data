@@ -1,4 +1,5 @@
 #include "Slice.h"
+#include "SliceVectorized.h"
 
 #include <algorithm>
 #include <execution>
@@ -61,4 +62,22 @@ Points3D TimsSlicePL::getPoints3D(bool precursor){
     }
 
     return {retFrames, retScan, retMz, retInvIonMob, retIntensity};
+}
+
+TimsSliceVectorizedPL TimsSlicePL::getVectorizedSlice(int resolution) {
+
+        std::vector<TimsFrameVectorizedPL> retPrecursors;
+        std::vector<TimsFrameVectorizedPL> retFragments;
+
+        retPrecursors.resize(this->precursors.size());
+        retFragments.resize(this->fragments.size());
+
+        auto vectorizeFrame = [&resolution](TimsFramePL& f) -> TimsFrameVectorizedPL {
+            return f.vectorize(resolution);
+        };
+
+        std::transform(std::execution::par_unseq, this->precursors.begin(), this->precursors.end(), retPrecursors.begin(), vectorizeFrame);
+        std::transform(std::execution::par_unseq, this->fragments.begin(), this->fragments.end(), retFragments.begin(), vectorizeFrame);
+
+        return {retPrecursors, retFragments};
 }

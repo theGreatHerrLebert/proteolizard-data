@@ -2,6 +2,8 @@
 #define CPP_TIMS_SLICE_H
 
 #include "Frame.h"
+#include "VectorizedFrame.h"
+#include "SliceVectorized.h"
 
 class Points3D {
 public:
@@ -20,6 +22,7 @@ public:
     TimsSlicePL(std::vector<TimsFramePL>& pf, std::vector<TimsFramePL>& ff);
     TimsSlicePL filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin);
     Points3D getPoints3D(bool precursor);
+    TimsSliceVectorizedPL getVectorizedSlice(int resolution);
 
     std::vector<TimsFramePL> precursors;
     std::vector<TimsFramePL> fragments;

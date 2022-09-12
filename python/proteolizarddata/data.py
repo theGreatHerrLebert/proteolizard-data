@@ -1,3 +1,5 @@
+import tensorflow as tf
+
 import numpy as np
 import pandas as pd
 import sqlite3
@@ -565,6 +567,98 @@ class TimsSlice:
         frames = self.get_precursor_frames()
         return f"TimsSlice(frame start: {frames[0].frame_id()}, frame end: {frames[len(frames)-1].frame_id()})"
 
+    def vectorize(self, resolution=2):
+        """
+        :param resolution:
+        :return:
+        """
+        return TimsSliceVectorized(self.__slice_ptr.getVectorizedSlice(resolution))
+
+
+class TimsSliceVectorized:
+    def __init__(self, slice_ptr):
+        self.__slice_ptr = slice_ptr
+
+    def get_precursor_frames(self):
+        """
+        :return:
+        """
+        return [VectorizedTimsFrame(x) for x in self.__slice_ptr.getPrecursors()]
+
+    def get_fragment_frames(self):
+        """
+        :return:
+        """
+        return [VectorizedTimsFrame(x) for x in self.__slice_ptr.getFragments()]
+
+    def get_precursor_points(self):
+        """
+        :return:
+        """
+        return Point3DVectorized(self.__slice_ptr.getPoints(True)).get_points()
+
+    def get_fragment_points(self):
+        """
+        :return:
+        """
+        return Point3DVectorized(self.__slice_ptr.getPoints(False)).get_points()
+
+    def filter_ranged(self, mz_min=0, mz_max=2000, scan_min=0, scan_max=1000, intensity_min=0):
+        """
+        :param mz_min:
+        :param mz_max:
+        :param scan_min:
+        :param scan_max:
+        :param intensity_min:
+        :return:
+        """
+        return TimsSliceVectorized(self.__slice_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
+
+    def __repr__(self):
+        """
+        :return:
+        """
+        frames = self.get_precursor_frames()
+        return f"TimsSliceVectorized(frame start: {frames[0].frame_id()}, frame end: {frames[len(frames)-1].frame_id()})"
+
+    def get_zero_indexed_sparse_tensor(self, precursor=True, zero_index_mz=True):
+
+        if precursor:
+            data = self.get_precursor_points()
+        else:
+            data = self.get_fragment_points()
+
+        frames = data['frame'].values
+        unique_frames = np.sort(np.unique(frames))
+        f_dict = dict(np.c_[unique_frames, np.arange(unique_frames.shape[0])])
+
+        scans = data['scan'].values
+        unique_scans = np.sort(np.unique(scans))
+        s_dict = dict(np.c_[unique_scans, np.arange(unique_scans.shape[0])])
+
+        if zero_index_mz:
+            indices = data.indices.values - np.min(data.indices.values)
+        else:
+            indices = data.indices.values
+
+        def __fun_f(frame_id):
+            return f_dict[frame_id]
+
+        def __fun_s(scan_id):
+            return s_dict[scan_id]
+
+        f_to_index = np.vectorize(__fun_f)
+        s_to_index = np.vectorize(__fun_s)
+
+        indexed_frames = f_to_index(frames)
+        indexed_scans = s_to_index(scans)
+
+        idx = np.c_[indexed_frames, indexed_scans, indices]
+
+        st = tf.sparse.SparseTensor(indices=idx, values=data['values'].astype(np.float32), dense_shape=np.max(idx, axis=0) + 1)
+
+        return st
+
 
 class Points3D:
     def __init__(self, point_ptr):
@@ -578,6 +672,18 @@ class Points3D:
         intensity = self.__point_ptr.getIntensity()
 
         return pd.DataFrame({'frame': ids, 'scan': scans, 'inv_ion_mob': inv_ion_mob, 'mz': mz, 'intensity': intensity})
+
+
+class Point3DVectorized:
+    def __init__(self, point_ptr):
+        self.__point_ptr = point_ptr
+
+    def get_points(self):
+        ids = self.__point_ptr.getFrames()
+        scans = self.__point_ptr.getScans()
+        mz = self.__point_ptr.getMz()
+        intensity = self.__point_ptr.getIntensity()
+        return pd.DataFrame({'frame': ids, 'scan': scans, 'indices': mz, 'values': intensity})
 
 
 class TimsBlock:
