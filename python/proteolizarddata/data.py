@@ -9,6 +9,7 @@ import tensorflow as tf
 from abc import ABC, abstractmethod
 from typing import List
 
+
 class PyTimsDataHandle(ABC):
     def __init__(self, dp):
         """
@@ -23,15 +24,17 @@ class PyTimsDataHandle(ABC):
         self.fragment_frames: np.array = self.__get_fragment_frame_ids()
         self.meta_data = self.__get_meta_data()
         self.pasef_meta_data = self._get_pasef_meta_data()
+
+        appropriate_found = False
+
         for so_path in self.bp:
-            appropriate_found = False
             try:
                 self.__handle = pl.ExposedTimsDataHandle(self.dp, so_path)
                 appropriate_found = True
                 break
             except Exception as e:
                 continue
-        assert appropriate_found==True, "No appropriate opentims_bruker_bridge could be found for your system"
+        assert appropriate_found is True, "No appropriate opentims_bruker_bridge could be found for your system"
 
     @property
     @abstractmethod
