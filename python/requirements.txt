@@ -6,7 +6,6 @@ scikit-learn
 scipy>=1.8.0
 tqdm~=4.62.3
 tensorflow>=2.8.0
-hdbscan~=0.8.28
 opentims_bruker_bridge
 tqdm
 pytest
