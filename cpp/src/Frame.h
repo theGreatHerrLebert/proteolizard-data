@@ -32,7 +32,7 @@ class TimsFramePL {
 public:
     // constructors
     TimsFramePL()= default;
-    TimsFramePL(int id, std::vector<int>  scan, std::vector<double>  mz, std::vector<int>  intensity, std::vector<int>  tof, std::vector<double>  inv_ion_mob);
+    TimsFramePL(int id, double rt, std::vector<int>  scan, std::vector<double>  mz, std::vector<int>  intensity, std::vector<int>  tof, std::vector<double>  inv_ion_mob);
 
     // binning to a finite resolution
     TimsFramePL filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int minIntensity=1);
@@ -49,14 +49,15 @@ public:
 
     std::vector<MzSpectrumPL> exportSpectra();
 
-    std::pair<std::pair<std::vector<int>, std::vector<int>>, std::vector<MzVectorPL>> vectorizedWindows(int resolution,int minPeaksPerWindow,int minIntensity,double windowLength,bool overlapping);
+    std::pair<std::pair<std::vector<int>, std::vector<int>>, std::vector<MzVectorPL>> vectorizedWindows(int resolution, int minPeaksPerWindow, int minIntensity,double windowLength, bool overlapping);
 
-    HashBlock getHashingBlocks(int resolution,int minPeaksPerWindow,int minIntensity,double windowLength,bool overlapping);
+    HashBlock getHashingBlocks(int resolution, int minPeaksPerWindow, int minIntensity, double windowLength, bool overlapping);
 
     Eigen::MatrixXd denseWindowMatrix(int resolution, int minPeaksPerWindow,
                            int minIntensity, double windowLength, bool overlapping);
 
     int frameId {};
+    double retentionTime {};
     std::vector<int> scans {};
     std::vector<double> mzs {};
     std::vector<int> intensities {};

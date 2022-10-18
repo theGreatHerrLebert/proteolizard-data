@@ -20,7 +20,7 @@ public:
 class TimsSlicePL {
 public:
     TimsSlicePL(std::vector<TimsFramePL>& pf, std::vector<TimsFramePL>& ff);
-    TimsSlicePL filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin);
+    TimsSlicePL filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin, double rtMin, double rtMax);
     Points3D getPoints3D(bool precursor);
     TimsSliceVectorizedPL getVectorizedSlice(int resolution);
 

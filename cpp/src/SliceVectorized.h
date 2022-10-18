@@ -22,7 +22,7 @@ public:
 class TimsSliceVectorizedPL {
 public:
     TimsSliceVectorizedPL(std::vector<TimsFrameVectorizedPL>& pf, std::vector<TimsFrameVectorizedPL>& ff);
-    TimsSliceVectorizedPL filterRanged(int scanMin, int scanMax, int mzMin, int mzMax, int intensityMin);
+    TimsSliceVectorizedPL filterRanged(int frameMin, int frameMax, int scanMin, int scanMax, int mzMin, int mzMax, int intensityMin);
     Points3DVectorized getPoints3D(bool precursor);
 
     std::vector<TimsFrameVectorizedPL> precursors;

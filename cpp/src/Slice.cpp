@@ -14,20 +14,26 @@ Points3D::Points3D(
 
 TimsSlicePL::TimsSlicePL(std::vector<TimsFramePL>& pf, std::vector<TimsFramePL>& ff): precursors(pf), fragments(ff) {}
 
-TimsSlicePL TimsSlicePL::filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin){
+TimsSlicePL TimsSlicePL::filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin, double rtMin, double rtMax){
+
+    std::vector<TimsFramePL> filteredPrecursors;
+    std::vector<TimsFramePL> filteredFragments;
+
+    std::copy_if(this->precursors.begin(), this->precursors.end(), std::back_inserter(filteredPrecursors), [&rtMin, &rtMax](TimsFramePL& f){return (rtMin <= f.retentionTime) && (f.retentionTime <= rtMax) ;} );
+    std::copy_if(this->fragments.begin(), this->fragments.end(), std::back_inserter(filteredFragments), [&rtMin, &rtMax](TimsFramePL& f){return (rtMin <= f.retentionTime) && (f.retentionTime <= rtMax) ;} );
 
     std::vector<TimsFramePL> retPrecursors;
     std::vector<TimsFramePL> retFragments;
 
-    retPrecursors.resize(this->precursors.size());
-    retFragments.resize(this->fragments.size());
+    retPrecursors.resize(filteredPrecursors.size());
+    retFragments.resize(filteredFragments.size());
 
     auto filterFrame = [&scanMin, &scanMax, &mzMin, &mzMax, &intensityMin](TimsFramePL& f) -> TimsFramePL {
         return f.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
     };
 
-    std::transform(std::execution::par_unseq, this->precursors.begin(), this->precursors.end(), retPrecursors.begin(), filterFrame);
-    std::transform(std::execution::par_unseq, this->fragments.begin(), this->fragments.end(), retFragments.begin(), filterFrame);
+    std::transform(std::execution::par_unseq, filteredPrecursors.begin(), filteredPrecursors.end(), retPrecursors.begin(), filterFrame);
+    std::transform(std::execution::par_unseq, filteredFragments.begin(), filteredFragments.end(), retFragments.begin(), filterFrame);
 
     return {retPrecursors, retFragments};
 }

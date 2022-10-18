@@ -82,11 +82,14 @@ PYBIND11_MODULE(libproteolizarddata, h) {
     py::class_<TimsFramePL>(h, "TimsFrame")
 
             // -------------- CONSTRUCTOR ---------------
-            .def(py::init<int &, std::vector<int> &, std::vector<double> &, std::vector<int> &, std::vector<int> &, std::vector<double> &>())
+            .def(py::init<int &, double &, std::vector<int> &, std::vector<double> &, std::vector<int> &, std::vector<int> &, std::vector<double> &>())
 
             // -------------- MEMBER ---------------
             .def("getFrameId", [](TimsFramePL &self) {
                 return self.frameId;
+            })
+            .def("getRetentionTime", [](TimsFramePL &self) {
+                return self.retentionTime;
             })
             .def("getScans", [](TimsFramePL &self) {
                 return py::array(py::cast(self.scans));
@@ -299,8 +302,8 @@ PYBIND11_MODULE(libproteolizarddata, h) {
                 return self.fragments;
             })
             .def("filterRanged",
-                 [](TimsSlicePL &self, int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin) {
-                     return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
+                 [](TimsSlicePL &self, int scanMin, int scanMax, double mzMin, double mzMax, int intensityMin, double rtMin, double rtMax) {
+                     return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin, rtMin, rtMax);
                  })
              .def("getVectorizedSlice", [](TimsSlicePL &self, int resolution) {
                  return self.getVectorizedSlice(resolution);
@@ -320,8 +323,8 @@ PYBIND11_MODULE(libproteolizarddata, h) {
            .def("getFragment", [](TimsSliceVectorizedPL &self) {
                return self.fragments;
            })
-           .def("filterRanged", [](TimsSliceVectorizedPL &self, int scanMin, int scanMax, int mzMin, int mzMax, int intensityMin) {
-               return self.filterRanged(scanMin, scanMax, mzMin, mzMax, intensityMin);
+           .def("filterRanged", [](TimsSliceVectorizedPL &self, int frameMin, int frameMax, int scanMin, int scanMax, int mzMin, int mzMax, int intensityMin) {
+               return self.filterRanged(frameMin, frameMax, scanMin, scanMax, mzMin, mzMax, intensityMin);
            })
            .def("getPoints", [](TimsSliceVectorizedPL &self, bool precursor) {
                return self.getPoints3D(precursor);

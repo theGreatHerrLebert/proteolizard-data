@@ -16,7 +16,7 @@ Points3DVectorized::Points3DVectorized(
 
 TimsSliceVectorizedPL::TimsSliceVectorizedPL(std::vector<TimsFrameVectorizedPL>& pf, std::vector<TimsFrameVectorizedPL>& ff): precursors(pf), fragments(ff) {}
 
-TimsSliceVectorizedPL TimsSliceVectorizedPL::filterRanged(int scanMin, int scanMax, int mzMin, int mzMax, int intensityMin){
+TimsSliceVectorizedPL TimsSliceVectorizedPL::filterRanged(int frameMin, int frameMax, int scanMin, int scanMax, int mzMin, int mzMax, int intensityMin){
 
     std::vector<TimsFrameVectorizedPL> retPrecursors;
     std::vector<TimsFrameVectorizedPL> retFragments;

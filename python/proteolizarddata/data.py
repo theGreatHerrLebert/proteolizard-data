@@ -87,7 +87,18 @@ class PyTimsDataHandle(ABC):
         :return:
         """
         d = dict(zip(self.meta_data.Id.values, self.meta_data.Time.values))
-        return [d[x] for x in frames]
+        return np.array([d[x] for x in frames])
+
+    def rt_to_closest_frame_id(self, rt, precursor=True):
+        """
+
+        :param precursor:
+        :param rt:
+        :return:
+        """
+        if precursor:
+            return self.precursor_frames[np.abs(self.frames_to_rts(self.precursor_frames) - rt).argmin()]
+        return self.fragment_frames[np.abs(self.frames_to_rts(self.fragment_frames) - rt).argmin()]
 
     def rt_range_to_precursor_frame_ids(self, rt_min: float, rt_max: float) -> np.array:
         """
@@ -334,6 +345,9 @@ class MzVector:
         """
         return MzVector(self.__vec + other.__vec)
 
+    def __repr__(self):
+        return f"MzVector(frame: {self.frame_id()}, scan: {self.scan_id()}, sum intensity: {np.sum(self.values())})"
+
 
 class VectorizedTimsFrame:
     def __init__(self, vec_frame_pointer):
@@ -380,6 +394,10 @@ class VectorizedTimsFrame:
         """
         return VectorizedTimsFrame(self.__frame.filterRanged(scan_min, scan_max, index_min, index_max, intensity_min))
 
+    def __repr__(self):
+        return f"TimsFrameVectorized(id: {self.frame_id()}, num data-points: {self.indices().shape[0]}, sum intensity: " \
+               f"{np.sum(self.values())})"
+
     def get_spectra(self):
         """
         :return:
@@ -400,8 +418,8 @@ class TimsFrame:
     def __init__(self, frame_pointer, *args):
 
         if len(args) > 0:
-            frame_id, scan, mz, intensity, tof, inv_ion_mob = args
-            self.frame_ptr = pl.TimsFrame(frame_id, scan, mz, intensity, tof, inv_ion_mob)
+            frame_id, rt, scan, mz, intensity, tof, inv_ion_mob = args
+            self.frame_ptr = pl.TimsFrame(frame_id, rt, scan, mz, intensity, tof, inv_ion_mob)
 
         else:
             self.frame_ptr = frame_pointer
@@ -415,6 +433,12 @@ class TimsFrame:
         :return:
         """
         return self.frame_ptr.getFrameId()
+
+    def retention_time(self):
+        """
+        :return:
+        """
+        return self.frame_ptr.getRetentionTime()
 
     def scan(self):
         """
@@ -552,22 +576,37 @@ class TimsSlice:
         """
         return Points3D(self.__slice_ptr.getPoints(False)).get_points()
 
-    def filter_ranged(self, mz_min=0, mz_max=2000, scan_min=0, scan_max=1000, intensity_min=0):
+    def filter_ranged(self, mz_min=0, mz_max=2000, scan_min=0, scan_max=1000, intensity_min=0, rt_min=0, rt_max=0):
         """
         :param mz_min:
         :param mz_max:
         :param scan_min:
         :param scan_max:
         :param intensity_min:
+        :param rt_min:
+        :param rt_max:
         :return:
         """
-        return TimsSlice(self.__slice_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
+
+        if rt_min == 0 and rt_max == 0:
+
+            frames = self.get_precursor_frames()
+            s = frames[0].retention_time()
+            e = frames[-1].retention_time()
+            return TimsSlice(
+                self.__slice_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min, s, e))
+
+        return TimsSlice(
+            self.__slice_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min, rt_min, rt_max))
 
     def __repr__(self):
         """
         :return:
         """
         frames = self.get_precursor_frames()
+
+        if len(frames) == 0:
+            return f"TimsSlice(None)"
         return f"TimsSlice(frame start: {frames[0].frame_id()}, frame end: {frames[len(frames)-1].frame_id()})"
 
     def vectorize(self, resolution=2):

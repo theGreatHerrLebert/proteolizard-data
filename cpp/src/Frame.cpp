@@ -64,7 +64,7 @@ TimsFramePL operator+(const TimsFramePL &leftFrame, const TimsFramePL &rightFram
         retValues.push_back(value);
     }
 
-    return {leftFrame.frameId, retScans, retIndices, retValues, {}, {}};
+    return {leftFrame.frameId, leftFrame.retentionTime, retScans, retIndices, retValues, {}, {}};
 }
 
 HashBlock::HashBlock(int c, std::vector<int> ri, std::vector<int> s, std::vector<int> b, std::vector<int> i, std::vector<int> v):
@@ -75,8 +75,9 @@ HashBlock::HashBlock(int c, std::vector<int> ri, std::vector<int> s, std::vector
     indices(std::move(i)),
     values(std::move(v)) {}
 
-TimsFramePL::TimsFramePL(int id, std::vector<int>  scan, std::vector<double>  mz, std::vector<int>  intensity, std::vector<int>  tof, std::vector<double>  inv_ion_mob):
+TimsFramePL::TimsFramePL(int id, double rt, std::vector<int>  scan, std::vector<double>  mz, std::vector<int>  intensity, std::vector<int>  tof, std::vector<double>  inv_ion_mob):
     frameId(id),
+    retentionTime(rt),
     scans(std::move(scan)),
     mzs(std::move(mz)),
     intensities(std::move(intensity)),
@@ -112,7 +113,7 @@ TimsFramePL TimsFramePL::toResolution(const int resolution) {
         resI.push_back(value);
     }
 
-    return {this->frameId, resS, resMz, resI, this->tofs, this->inv_ion_mobs};
+    return {this->frameId, this->retentionTime, resS, resMz, resI, this->tofs, this->inv_ion_mobs};
 }
 
 TimsFramePL TimsFramePL::filterRanged(int scanMin, int scanMax, double mzMin, double mzMax, int minIntensity) {
@@ -140,9 +141,9 @@ TimsFramePL TimsFramePL::filterRanged(int scanMin, int scanMax, double mzMin, do
 
     // This guards for empty return
     if(!retScan.empty())
-        return TimsFramePL(this->frameId, retScan, retMz, retIntensity, retTof, retInv);
+        return TimsFramePL(this->frameId, this->retentionTime, retScan, retMz, retIntensity, retTof, retInv);
 
-    return TimsFramePL(this->frameId, {-1}, {-1}, {-1}, {-1}, {-1});
+    return TimsFramePL(this->frameId, this->retentionTime, {-1}, {-1}, {-1}, {-1}, {-1});
 }
 
 TimsFramePL TimsFramePL::fold(const int resolution, const int width) {
@@ -174,7 +175,7 @@ TimsFramePL TimsFramePL::fold(const int resolution, const int width) {
         intensities.push_back(intensity);
     }
 
-    return {frameId, scans, mzs, intensities, this->tofs, this->inv_ion_mobs};
+    return {frameId, this->retentionTime, scans, mzs, intensities, this->tofs, this->inv_ion_mobs};
 }
 
 TimsFrameVectorizedPL TimsFramePL::vectorize(const int resolution) {

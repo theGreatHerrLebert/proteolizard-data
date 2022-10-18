@@ -42,10 +42,11 @@ TimsFramePL ExposedTimsDataHandle::getTimsFramePL(const int frameId) {
     std::unique_ptr<uint32_t[]> tofs = std::make_unique<uint32_t[]>(buffer_size_needed);
     std::unique_ptr<double[]> inv_ion_mob = std::make_unique<double[]>(buffer_size_needed);
     std::unique_ptr<double[]> mz = std::make_unique<double[]>(buffer_size_needed);
+    std::unique_ptr<double[]> rts = std::make_unique<double[]>(buffer_size_needed);
 
     // fetch
     TimsFrame& frame = handle_->handle.get_frame(frameId);
-    frame.save_to_buffs(nullptr, scan_ids.get(), tofs.get(), intens.get(), mz.get(), inv_ion_mob.get(), nullptr);
+    frame.save_to_buffs(nullptr, scan_ids.get(), tofs.get(), intens.get(), mz.get(), inv_ion_mob.get(), rts.get());
 
     // allocate concrete vectors
     std::vector<double> mzs, inv_ion_mobility;
@@ -66,7 +67,9 @@ TimsFramePL ExposedTimsDataHandle::getTimsFramePL(const int frameId) {
         scans.push_back(scan_ids[peak_id]);
     }
 
-    return {frameId, scans, mzs, intensities, tof, inv_ion_mobility};
+    double retentionTime = rts[0];
+
+    return {frameId, retentionTime, scans, mzs, intensities, tof, inv_ion_mobility};
 }
 
 
