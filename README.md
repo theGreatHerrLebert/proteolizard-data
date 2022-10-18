@@ -2,7 +2,7 @@
 ### An object-oriented library of C++ classes and python-wrappers to seamlessly integrate timsTOF raw-data with python
 
 <p align="center">
-  <img src="logo.png" alt="logo" width="500"/>
+  <img src="ProteolizardLogo.png" alt="logo" width="350"/>
 </p>
 
 ## Context
