@@ -7,7 +7,7 @@
 
 ## Context
 Ion-mobility enhanced tandem-MS coupled to liquid chromatography is rapidly becoming the method of 
-choice for the analysis of high-complexity samples generated in proteomics, lipidomics and metabolomics.
+choice for the analysis of high-complexity samples generated in proteomics, lipidomics and (potentially) metabolomics.
 While information gain stemming from this acquisition scheme is tremendous, an additional recoding of 
 ion mobility makes data processing more challenging. The extra-dimension puts a lot of pressure on the 
 programmer to find solutions to raw-data processing that are fast enough to be useful.

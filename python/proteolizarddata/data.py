@@ -1,3 +1,4 @@
+import libproteolizarddata
 import tensorflow as tf
 
 import numpy as np
@@ -547,7 +548,8 @@ class TimsSlice:
 
         if len(args) > 0:
             precursors, fragments = args
-            self.__slice_ptr = pl.TimsSlicePL(precursors, fragments)
+            self.__slice_ptr = pl.TimsSlicePL([f.frame_ptr for f in precursors],
+                                              [f.frame_ptr for f in fragments])
 
         else:
             self.__slice_ptr = slice_ptr
