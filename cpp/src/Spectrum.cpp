@@ -1,5 +1,5 @@
 #include "Spectrum.h"
-
+#include <numeric>
 #include <cmath>
 
 MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec){
@@ -86,7 +86,10 @@ MzSpectrumPL MzSpectrumPL::filter(double mzMin, double mzMax, int intensityMin) 
         double mz = this->mz[i];
         int intensity = this->intensity[i];
 
-        if ((mz >= mzMin) && (mz <= mzMax) && (intensity >= intensityMin)) {
+        if ( ((mz >= mzMin) || (mzMin == -1) ) &&
+             ((mz <= mzMax) || (mzMax == -1) ) &&
+             ((intensity >= intensityMin) || (intensityMin == -1))
+           ){
             retMz.push_back(mz);
             retIntensity.push_back(intensity);
         }
@@ -121,6 +124,55 @@ MzSpectrumPL MzSpectrumPL::toResolution(int resolution) const{
     }
 
     return MzSpectrumPL{this->frameId, this->scanId, resMz, resI};
+}
+
+MzSpectrumPL MzSpectrumPL::toCentroided(int baselineNoiseLevel, double sigma) const{
+    // filter away noise below baseline noise level
+    MzSpectrumPL filtered = this->filter(-1,-1,baselineNoiseLevel);
+
+    // init centroided data
+    std::vector<double> centMz;
+    std::vector<int> centI;
+
+    // inti temporary peak cluster data
+    std::vector<double> tmp_peakMz;
+    std::vector<int> tmp_peakI;
+    double lastMz = 0, currentMz = 0, currentIntensity = 0;
+    int sumI = 0;
+    double meanMz = 0;
+
+    for(size_t i = 0; i< this->mz.size(); i++){
+        currentMz = this->mz[i];
+        currentIntensity = this->intensity[i];
+
+        // if peak is too far away from last peak make new cluster
+        if (currentMz-lastMz > sigma && !tmp_peakMz.empty()){
+            // sum peak
+            for(size_t j=0;j<tmp_peakMz.size();j++){
+                sumI += tmp_peakI[j];
+            }
+            // find mz mean
+            for (size_t j=0;j<tmp_peakI.size();j++){
+                meanMz += tmp_peakMz[j]*tmp_peakI[j]/sumI;
+            }
+            centMz.push_back(meanMz);
+            centI.push_back(sumI);
+            // clean up
+            tmp_peakI.clear();
+            tmp_peakMz.clear();
+            sumI = 0;
+            meanMz = 0;
+        }
+        tmp_peakMz.push_back(currentMz);
+        tmp_peakI.push_back(currentIntensity);
+        lastMz = currentMz;
+
+    }
+
+
+    return MzSpectrumPL{this->frameId, this->scanId, centMz, centI};
+
+
 }
 
 /**
