@@ -21,6 +21,7 @@ public:
     [[nodiscard]] std::map<int, MzSpectrumPL> windows(double windowLength, bool overlapping, int minPeaks, int minIntensity) const;
     [[nodiscard]] std::pair<std::vector<int>, std::vector<MzSpectrumPL>> exportWindows(double windowLength, bool overlapping,
                                                                           int minPeaks, int minIntensity) const;
+    [[nodiscard]] MzSpectrumPL toCentroided(int baselineNoiseLevel, double sigma) const;
 
     friend MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec);
 

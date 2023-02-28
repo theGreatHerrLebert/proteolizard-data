@@ -49,6 +49,9 @@ PYBIND11_MODULE(libproteolizarddata, h) {
             .def("toResolution", [](MzSpectrumPL &self, int resolution){
                 return self.toResolution(resolution);
             })
+            .def("toCentroided", [](MzSpectrumPL &self, int baselineNoiseLevel, double sigma){
+                return self.toCentroided(baselineNoiseLevel,sigma);
+            })
 
             .def("windows",
                  [](MzSpectrumPL &self, double windowLength, bool overlapping, int minPeaks, int minIntensity) {

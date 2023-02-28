@@ -278,6 +278,13 @@ class MzSpectrum:
         """
         return MzSpectrum(self.spec_ptr.toResolution(resolution))
 
+    def to_centroided(self, baseline_noise_level: int, sigma: float):
+        """
+        :param sigma: distance cutoff value, maximal distance for two mzs
+            to be considered of same peak.
+        """
+        return MzSpectrum(self.spec_ptr.toCentroided(baseline_noise_level, sigma))
+
     def windows(self, window_length=10, overlapping=True, min_peaks=3, min_intensity=50):
         """
         :param window_length:
@@ -297,6 +304,7 @@ class MzSpectrum:
 
     def filter(self, mz_min=0, mz_max=2000, intensity_min=25):
         """
+        to ignore one limit, it can be set to -1
         :param mz_min:
         :param mz_max:
         :param intensity_min:
