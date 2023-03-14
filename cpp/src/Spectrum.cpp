@@ -42,6 +42,18 @@ MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSp
     return {leftSpec.frameId, leftSpec.scanId, retIndices, retValues};
 }
 
+MzSpectrumPL operator*(const MzSpectrumPL &leftSpec, const float scalar){
+    std::vector<int> mult_i = leftSpec.intensity;
+    for (size_t i = 0; i < mult_i.size(); i++){
+        mult_i[i] *= scalar;
+    }
+    return MzSpectrumPL(leftSpec.frameId,leftSpec.scanId,leftSpec.mz,mult_i);
+}
+
+MzSpectrumPL operator*(const float scalar, const MzSpectrumPL &rightSpec){
+    return rightSpec*scalar;
+}
+
 MzSpectrumPL::MzSpectrumPL(int frame, int scan, std::vector<double> m, std::vector<int> i):
     frameId(frame), scanId(scan), mz(std::move(m)), intensity(std::move(i)) {}
 
