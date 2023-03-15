@@ -1,15 +1,12 @@
-import libproteolizarddata
 import tensorflow as tf
-
 import numpy as np
 import pandas as pd
 import sqlite3
 import libproteolizarddata as pl
 import opentims_bruker_bridge as obb
-import tensorflow as tf
 from abc import ABC, abstractmethod
 from typing import List
-
+import json
 
 class PyTimsDataHandle(ABC):
     def __init__(self, dp):
@@ -312,6 +309,22 @@ class MzSpectrum:
         """
         return MzSpectrum(self.spec_ptr.filter(mz_min, mz_max, intensity_min))
 
+
+    def to_jsons(self, only_spectrum = False):
+        """
+        generates json string representation of MzSpectrum
+        """
+        json_dict = {}
+        json_dict["mz"] = self.mz().tolist()
+        json_dict["intensity"] = self.intensity().tolist()
+
+        if only_spectrum:
+            return json.dumps(json_dict)
+
+        json_dict["frame_id"] = self.frame_id()
+        json_dict["scan_id"] = self.scan_id()
+
+        return json.dumps(json_dict)
 
 class MzVector:
     def __init__(self, vec_pointer):
