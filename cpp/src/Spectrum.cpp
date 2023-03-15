@@ -1,10 +1,11 @@
 #include "Spectrum.h"
 #include <numeric>
 #include <cmath>
+#include <unordered_map>
 
 MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec){
 
-    std::map<double, int> sumMap;
+    std::unordered_map<double, int> sumMap;
 
     // insert leftFrame values into map
     for (auto it = leftSpec.mz.begin(); it != leftSpec.mz.end(); ++it) {
@@ -112,7 +113,7 @@ MzSpectrumPL MzSpectrumPL::filter(double mzMin, double mzMax, int intensityMin) 
 
 MzSpectrumPL MzSpectrumPL::toResolution(int resolution) const{
 
-    std::map<int, int> intensityMap;
+    std::unordered_map<int, int> intensityMap;
     double factor = pow(10.0, resolution);
 
     std::vector<double> resMz;
