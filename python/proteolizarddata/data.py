@@ -309,6 +309,17 @@ class MzSpectrum:
         """
         return MzSpectrum(self.spec_ptr.filter(mz_min, mz_max, intensity_min))
 
+    def __mul__(self, scalar: float):
+        """
+        :param scalar: float to scale intensities by.
+        """
+        return MzSpectrum(self.spec_ptr * scalar)
+
+    def __rmul__(self, scalar: float):
+        """
+        :param scalar: float to scale intensities by.
+        """
+        return MzSpectrum(scalar*self.spec_ptr)
 
     def to_jsons(self, only_spectrum = False):
         """

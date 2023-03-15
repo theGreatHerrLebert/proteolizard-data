@@ -24,7 +24,8 @@ public:
     [[nodiscard]] MzSpectrumPL toCentroided(int baselineNoiseLevel, double sigma) const;
 
     friend MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec);
-
+    friend MzSpectrumPL operator*(const MzSpectrumPL &Spec, const float scalar);
+    friend MzSpectrumPL operator*(const float scalar, const MzSpectrumPL &Spec);
     int frameId{};
     // double retentionTime{};
     int scanId{};
