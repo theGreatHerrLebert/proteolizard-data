@@ -261,6 +261,12 @@ class MzSpectrum:
         """
         return MzSpectrum(self.spec_ptr + other.spec_ptr)
 
+    def __iadd__(self, other):
+        """
+        :param other:
+        """
+        self.spec_ptr += other.spec_ptr
+        return self
     def vectorize(self, resolution: int = 2):
         """
         :param resolution:
