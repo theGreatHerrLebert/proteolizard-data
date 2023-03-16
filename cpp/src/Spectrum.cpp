@@ -4,14 +4,19 @@
 #include <unordered_map>
 
 MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec){
+    MzSpectrumPL l = leftSpec;
+    return l += rightSpec;
 
+}
+
+MzSpectrumPL& MzSpectrumPL::operator+=(const MzSpectrumPL &rightSpec){
     std::unordered_map<double, int> sumMap;
 
-    // insert leftFrame values into map
-    for (auto it = leftSpec.mz.begin(); it != leftSpec.mz.end(); ++it) {
-        auto i = std::distance(leftSpec.mz.begin(), it);
-        auto index = leftSpec.mz[i];
-        auto intensity = leftSpec.intensity[i];
+    // insert this's values into map
+    for (auto it = this->mz.begin(); it != this->mz.end(); ++it) {
+        auto i = std::distance(this->mz.begin(), it);
+        auto index = this->mz[i];
+        auto intensity = this->intensity[i];
         sumMap[index] = intensity;
     }
 
@@ -39,8 +44,10 @@ MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSp
         retIndices.push_back(key);
         retValues.push_back(value);
     }
+    this->mz = retIndices;
+    this->intensity = retValues;
 
-    return {leftSpec.frameId, leftSpec.scanId, retIndices, retValues};
+    return *this;
 }
 
 MzSpectrumPL operator*(const MzSpectrumPL &leftSpec, const float scalar){
