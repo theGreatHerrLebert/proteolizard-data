@@ -218,6 +218,15 @@ class PyTimsDataHandleDIA(PyTimsDataHandle):
 
 class MzSpectrum:
 
+    @classmethod
+    def from_jsons(cls, jsons:str):
+        json_dict:dict = json.loads(jsons)
+        mz = json_dict["mz"]
+        intensity = json_dict["intensity"]
+        frame_id = json_dict.get("frame_id", -1)
+        scan_id = json_dict.get("scan_id", -1)
+        return cls(None, frame_id, scan_id, mz, intensity)
+
     def __init__(self, spec_pointer, *args):
 
         if len(args) > 0:
