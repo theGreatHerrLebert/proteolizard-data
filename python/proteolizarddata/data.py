@@ -237,7 +237,17 @@ class MzSpectrum:
             self.spec_ptr = spec_pointer
 
     def __repr__(self):
-        return f"MzSpectrum(frame: {self.frame_id()}, scan: {self.scan_id()}, sum intensity: {self.sum_intensity()})"
+        return f"[{self.mz().tolist()},{self.intensity().tolist()}]"
+
+    def size(self):
+        """
+        """
+        return self.spec_ptr.getSize()
+
+    def is_empty(self):
+        """
+        """
+        return self.spec_ptr.getSize() == 0
 
     def frame_id(self):
         """

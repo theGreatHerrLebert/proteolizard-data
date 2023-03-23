@@ -42,6 +42,9 @@ PYBIND11_MODULE(libproteolizarddata, h) {
             .def("getIntensities", [](MzSpectrumPL &self) {
                 return py::array(py::cast(self.intensity));
             })
+            .def("getSize", [](MzSpectrumPL &self){
+                return self.intensity.size();
+            })
             .def(py::self + py::self)
             .def(py::self += py::self)
             .def(py::self * float())

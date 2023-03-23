@@ -1,7 +1,6 @@
 #include "Spectrum.h"
 #include <numeric>
 #include <cmath>
-#include <unordered_map>
 
 MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec){
     MzSpectrumPL l = leftSpec;
@@ -10,7 +9,7 @@ MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSp
 }
 
 MzSpectrumPL& MzSpectrumPL::operator+=(const MzSpectrumPL &rightSpec){
-    std::unordered_map<double, int> sumMap;
+    std::map<double, int> sumMap;
 
     // insert this's values into map
     for (auto it = this->mz.begin(); it != this->mz.end(); ++it) {
@@ -120,7 +119,7 @@ MzSpectrumPL MzSpectrumPL::filter(double mzMin, double mzMax, int intensityMin) 
 
 MzSpectrumPL MzSpectrumPL::toResolution(int resolution) const{
 
-    std::unordered_map<int, int> intensityMap;
+    std::map<int, int> intensityMap;
     double factor = pow(10.0, resolution);
 
     std::vector<double> resMz;
@@ -154,40 +153,36 @@ MzSpectrumPL MzSpectrumPL::toCentroided(int baselineNoiseLevel, double sigma) co
     std::vector<double> centMz;
     std::vector<int> centI;
 
-    // inti temporary peak cluster data
-    std::vector<double> tmp_peakMz;
-    std::vector<int> tmp_peakI;
     double lastMz = 0, currentMz = 0, currentIntensity = 0;
     int sumI = 0;
     double meanMz = 0;
-
     for(size_t i = 0; i< this->mz.size(); i++){
         currentMz = this->mz[i];
         currentIntensity = this->intensity[i];
 
-        // if peak is too far away from last peak make new cluster
-        if (currentMz-lastMz > sigma && !tmp_peakMz.empty()){
-            // sum peak
-            for(size_t j=0;j<tmp_peakMz.size();j++){
-                sumI += tmp_peakI[j];
-            }
-            // find mz mean
-            for (size_t j=0;j<tmp_peakI.size();j++){
-                meanMz += tmp_peakMz[j]*tmp_peakI[j]/sumI;
-            }
+        // if peak is too far away from last peak push centroid
+        if (currentMz-lastMz > sigma && meanMz > 0){
+            meanMz /= sumI;
+            // push centroid
             centMz.push_back(meanMz);
             centI.push_back(sumI);
-            // clean up
-            tmp_peakI.clear();
-            tmp_peakMz.clear();
+
+            // start new centroid
             sumI = 0;
             meanMz = 0;
         }
-        tmp_peakMz.push_back(currentMz);
-        tmp_peakI.push_back(currentIntensity);
+        meanMz += currentMz*currentIntensity;
+        sumI += currentIntensity;
         lastMz = currentMz;
 
     }
+    // push back last remaining centroid
+    if (meanMz > 0){
+        meanMz /= sumI;
+        centMz.push_back(meanMz);
+        centI.push_back(sumI);
+    }
+
 
 
     return MzSpectrumPL{this->frameId, this->scanId, centMz, centI};
