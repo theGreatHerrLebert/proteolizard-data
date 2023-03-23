@@ -54,8 +54,8 @@ MzSpectrumPL operator*(const MzSpectrumPL &leftSpec, const float scalar){
     std::vector<int> mult_i = leftSpec.intensity;
     for (size_t i = 0; i < mult_i.size(); i++){
         mult_i[i] *= scalar;
-    }
-    return MzSpectrumPL(leftSpec.frameId,leftSpec.scanId,leftSpec.mz,mult_i);
+        }
+    return MzSpectrumPL(leftSpec.frameId,leftSpec.scanId,leftSpec.mz,mult_i).filter(-1,-1, 1);
 }
 
 MzSpectrumPL operator*(const float scalar, const MzSpectrumPL &rightSpec){
