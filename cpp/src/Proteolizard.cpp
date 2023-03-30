@@ -58,7 +58,9 @@ PYBIND11_MODULE(libproteolizarddata, h) {
             .def("toCentroided", [](MzSpectrumPL &self, int baselineNoiseLevel, double sigma){
                 return self.toCentroided(baselineNoiseLevel,sigma);
             })
-
+            .def("push", [](MzSpectrumPL &self, MzSpectrumPL &other){
+                return self.push(other);
+            })
             .def("windows",
                  [](MzSpectrumPL &self, double windowLength, bool overlapping, int minPeaks, int minIntensity) {
                 auto p = self.exportWindows(windowLength, overlapping, minPeaks, minIntensity);
