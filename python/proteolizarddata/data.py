@@ -286,6 +286,7 @@ class MzSpectrum:
         """
         self.spec_ptr += other.spec_ptr
         return self
+
     def vectorize(self, resolution: int = 2):
         """
         :param resolution:
@@ -306,6 +307,16 @@ class MzSpectrum:
             to be considered of same peak.
         """
         return MzSpectrum(self.spec_ptr.toCentroided(baseline_noise_level, sigma))
+
+    def push(self, other):
+        """
+        Append mz and intensity values of
+        an other MzSpectra without mapping.
+
+        :param other: MzSpectrum to push to self
+        :type other: MzSpectrum
+        """
+        return MzSpectrum(self.spec_ptr.push(other.spec_ptr))
 
     def windows(self, window_length=10, overlapping=True, min_peaks=3, min_intensity=50):
         """

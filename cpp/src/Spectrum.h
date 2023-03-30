@@ -22,7 +22,7 @@ public:
     [[nodiscard]] std::pair<std::vector<int>, std::vector<MzSpectrumPL>> exportWindows(double windowLength, bool overlapping,
                                                                           int minPeaks, int minIntensity) const;
     [[nodiscard]] MzSpectrumPL toCentroided(int baselineNoiseLevel, double sigma) const;
-
+    [[nodiscard]] MzSpectrumPL& push(MzSpectrumPL& other);
     friend MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec);
     friend MzSpectrumPL operator*(const MzSpectrumPL &Spec, const float scalar);
     friend MzSpectrumPL operator*(const float scalar, const MzSpectrumPL &Spec);
@@ -36,5 +36,6 @@ public:
 };
 
 MzSpectrumPL operator+(const MzSpectrumPL &leftSpec, const MzSpectrumPL &rightSpec);
-
+MzSpectrumPL operator*(const MzSpectrumPL &leftSpec, const float scalar);
+MzSpectrumPL operator*(const float scalar, const MzSpectrumPL &rightSpec);
 #endif //CPP_SPECTRUM_H

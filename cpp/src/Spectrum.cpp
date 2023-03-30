@@ -186,8 +186,12 @@ MzSpectrumPL MzSpectrumPL::toCentroided(int baselineNoiseLevel, double sigma) co
 
 
     return MzSpectrumPL{this->frameId, this->scanId, centMz, centI};
+}
 
-
+MzSpectrumPL& MzSpectrumPL::push(MzSpectrumPL& other){
+    this->mz.insert(this->mz.end(), other.mz.begin(), other.mz.end());
+    this->intensity.insert(this->intensity.end(), other.intensity.begin(), other.intensity.end());
+    return *this;
 }
 
 /**
