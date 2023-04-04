@@ -1,4 +1,6 @@
+from __future__ import annotations
 import tensorflow as tf
+import pyarrow.dataset as ds
 import numpy as np
 import pandas as pd
 import sqlite3
@@ -7,6 +9,61 @@ import opentims_bruker_bridge as obb
 from abc import ABC, abstractmethod
 from typing import List
 import json
+
+class PyTimsSyntheticHandle:
+
+    def __init__(self, path:str):
+        """
+        Loading simulation data stored in parquet format.
+
+        :param path: path to parquet folder
+        :type path: str
+        """
+        self.dataset = ds.dataset(path, format="parquet")
+
+    def get_frame(self, frame_id):
+        """
+        Load a simulated TimsFrame into memory.
+
+        :param frame_id: Id of frame to load.
+        :type frame_id: int
+        :return: TimsFrame of frame frame_id
+        :rtype: TimsFrame
+        """
+        table = self.dataset.scanner(filter=ds.field("frame_id")==frame_id).to_table()
+
+        scans = table["scan_id"].to_numpy()
+        mzs = table["mz"].to_numpy()
+        intensities = table["intensity"].to_numpy()
+        scans_flattened = []
+        mzs_flattened = []
+        intensities_flattened = []
+
+        for scan,mz_spectrum, intensity_spectrum in zip(scans,mzs,intensities):
+            for m,i in zip(mz_spectrum, intensity_spectrum):
+                scans_flattened.append(scan)
+                mzs_flattened.append(m)
+                intensities_flattened.append(i)
+
+        return TimsFrame(None, frame_id, -1., scans_flattened, mzs_flattened, intensities_flattened, [], [])
+
+    def get_slice(self, frame_min:int, frame_max:int):
+        """
+        Load a simulated TimsSlice into memory.
+
+        :param frame_min: Minimum frame id (inclusive).
+        :type frame_min: int
+        :param frame_max: Maximum frame id (inclusive).
+        :type frame_max: int
+        :return: TimsSlice with frame_id >= frame_min and frame_id <= frame_max
+        :rtype: TimsSlice
+        """
+        tims_frames = []
+        for f_id in range(frame_min, frame_max +1):
+            tims_frames.append(self.get_frame(f_id))
+
+        return TimsSlice(None, tims_frames, [])
+
 
 class PyTimsDataHandle(ABC):
     def __init__(self, dp):
@@ -227,9 +284,14 @@ class MzSpectrum:
         scan_id = json_dict.get("scan_id", -1)
         return cls(None, frame_id, scan_id, mz, intensity)
 
+    @classmethod
+    def from_mzSpectra_list(cls, mz_spectra: List[MzSpectrum], resolution:int = 3, centroid:bool = True, baseline_noise_level:int = 1, sigma:float = 0.01):
+        assembled_spectrum = pl.MzSpectrumPL([s.spec_ptr for s in mz_spectra], resolution, centroid, baseline_noise_level, sigma)
+        return cls(assembled_spectrum)
+
     def __init__(self, spec_pointer, *args):
 
-        if len(args) > 0:
+        if len(args) > 1:
             frame, scan, mz, intensity = args
             self.spec_ptr = pl.MzSpectrumPL(frame, scan, mz, intensity)
 

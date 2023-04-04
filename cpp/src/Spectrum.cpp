@@ -64,6 +64,32 @@ MzSpectrumPL operator*(const float scalar, const MzSpectrumPL &rightSpec){
 MzSpectrumPL::MzSpectrumPL(int frame, int scan, std::vector<double> m, std::vector<int> i):
     frameId(frame), scanId(scan), mz(std::move(m)), intensity(std::move(i)) {}
 
+MzSpectrumPL::MzSpectrumPL(std::vector<MzSpectrumPL> &spectra, int resolution, bool centroid, int baselineNoiseLevel, double sigma){
+    size_t to_allocate = 0;
+    for (auto& spectrum : spectra){
+        to_allocate += spectrum.mz.size();
+    }
+
+    this->mz.reserve(to_allocate);
+    this->intensity.reserve(to_allocate);
+    for (auto& spectrum : spectra){
+        this->push(spectrum);
+    }
+    MzSpectrumPL tmp;
+    if (centroid){
+        tmp = this->toResolution(resolution).toCentroided(baselineNoiseLevel, sigma);
+    }
+    else{
+        tmp = this->toResolution(resolution);
+    }
+    this -> mz = std::move(tmp.mz);
+    this -> intensity = std::move(tmp.intensity);
+    this -> scanId = spectra[0].scanId;
+    this -> frameId = spectra[0].frameId;
+}
+
+
+
 MzVectorPL MzSpectrumPL::vectorize(int resolution) const{
 
     // auto tmp = this->toResolution(resolution);

@@ -25,7 +25,7 @@ PYBIND11_MODULE(libproteolizarddata, h) {
 
             // -------------- CONSTRUCTOR ---------------
             .def(py::init<int &, int &, std::vector<double> &, std::vector<int> &>())
-
+            .def(py::init<std::vector<MzSpectrumPL> &,int &, bool &, int &, double &>())
             // -------------- MEMBER ---------------
             .def("getFrameId", [](MzSpectrumPL &self) {
                 return self.frameId;
