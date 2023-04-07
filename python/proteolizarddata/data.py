@@ -175,6 +175,31 @@ class PyTimsDataHandle(ABC):
         region = self.meta_data[(self.meta_data['Time'] >= rt_min) & (self.meta_data['Time'] <= rt_max)]
         return region[region['MsMsType'] == self.acquisition].Id.values
 
+    def get_raw_points(self, rt_range, scan_range, mz_range, fragments = False):
+        """
+        Get MS1 or MS2 raw data inside specified hull, e.g. for extraction
+        of a precursor feature.
+
+        :param rt_range: Start and stop of rt dimension.
+        :type rt_range: Tuple(float, float)
+        :param scan_range: Start and stop of scan dimension.
+        :type scan_range: Tuple(int, int)
+        :param mz_range: Start and stop of mz dimension.
+        :type mz_range: Tuple(float, float)
+        :param fragments: Wether to consider fragment spectra.
+        :type fragments: Bool.
+        :return: Raw data inside hull.
+        :rtype: pd.DataFrame
+        """
+        rt_min, rt_max = rt_range
+        scan_min, scan_max = scan_range
+        mz_min, mz_max = mz_range
+
+        if fragments:
+            return self.get_slice_rt_range(rt_min, rt_max).filter_ranged(mz_min, mz_max, scan_min, scan_max).get_fragment_points()
+        else:
+            return self.get_slice_rt_range(rt_min, rt_max).filter_ranged(mz_min, mz_max, scan_min, scan_max).get_precursor_points()
+
     def get_global_mz_axis(self):
         """
 
