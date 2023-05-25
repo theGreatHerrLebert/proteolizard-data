@@ -18,6 +18,8 @@ find_package(Eigen3 REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(TBB REQUIRED)
+find_package(Arrow REQUIRED)
+find_package(Parquet REQUIRED)
 find_library(ZSTD NAMES zstd REQUIRED)
 
 include_directories("../contrib/opentims/opentims++")
@@ -36,7 +38,9 @@ add_library(proteolizarddata SHARED
     src/TimsBlock.cpp
     src/TimsBlockVectorized.cpp
     src/ExposedTimsDataHandle.cpp
+    src/ParquetTimsDataHandle.cpp
 )
+
 set(ProteoLizardData_HEADER_FILES
     src/VectorizedSpectrum.h
     src/Spectrum.h
@@ -47,6 +51,7 @@ set(ProteoLizardData_HEADER_FILES
     src/TimsBlock.h
     src/TimsBlockVectorized.h
     src/ExposedTimsDataHandle.h
+    src/ParquetTimsDataHandle.h
 )
 set_target_properties(proteolizarddata PROPERTIES PUBLIC_HEADER "${ProteoLizardData_HEADER_FILES}")
 
@@ -55,6 +60,8 @@ target_link_libraries(proteolizarddata
         Eigen3::Eigen
         SQLite::SQLite3
         TBB::tbb
+        Arrow::arrow_shared
+        Parquet::parquet_shared
         ${ZSTD}
 )
 
