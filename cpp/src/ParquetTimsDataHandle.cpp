@@ -32,11 +32,12 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
     std::shared_ptr<arrow::dataset::ParquetFileFormat> format = std::make_shared<arrow::dataset::ParquetFileFormat>();
 
     // Create a DatasetFactory
-    std::shared_ptr<arrow::dataset::FileSystemDatasetFactory> factory =
-            std::make_shared<arrow::dataset::FileSystemDatasetFactory>(fs, {filePath}, format, options);
+    auto factory = arrow::dataset::FileSystemDatasetFactory::Make(fs, {filePath}, format, options);
 
     // Create the Dataset
-    arrow::Result<std::shared_ptr<arrow::dataset::Dataset>> result = factory->Finish();
+    arrow::dataset::FinishOptions finish_options;
+
+    auto result = factory->Finish(finish_options);
 
     /*
     if (!result.ok()) {
@@ -49,6 +50,7 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
 
     // Create a ScannerBuilder
     std::shared_ptr<arrow::dataset::ScannerBuilder> scanner_builder;
+
     auto scanner_builder_result = dataset->NewScan();
 
     /*
@@ -62,7 +64,11 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
 
     // Define a predicate
     auto field = arrow::field("my_field", arrow::int32());  // Adjust this to match a field in your data
-    auto literal = arrow::scalar(10);  // Adjust this to the value you want to filter on
+
+    std::shared_ptr<arrow::Scalar> literal;
+
+    auto status = arrow::MakeScalar(10, &literal);
+
     auto predicate = arrow::compute::equal(arrow::compute::field_ref(field->name()), literal);
 
     auto status = scanner_builder->Filter(predicate);
@@ -83,7 +89,7 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
         // Handle error...
         return 1;
     }
-     */
+    */
 
     std::shared_ptr<arrow::dataset::Scanner> scanner = *scanner_result;
 
