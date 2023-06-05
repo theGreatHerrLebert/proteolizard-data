@@ -22,14 +22,14 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
                                                   int rowGroupIndexStop) {
     // construct a path to the parquet file
     std::stringstream filePath;
-    ss << this->rawDataPath + "BLOCK-" << blockId << ".parquet";
+    filePath << this->rawDataPath + "BLOCK-" << blockId << ".parquet";
 
     // Create a ParquetFileReader from a FileSource
     std::shared_ptr<arrow::io::ReadableFile> infile;
 
     PARQUET_ASSIGN_OR_THROW(
             infile,
-            arrow::io::ReadableFile::Open(ss.str()));
+            arrow::io::ReadableFile::Open(filePath.str()));
     std::unique_ptr<parquet::arrow::FileReader> reader;
     PARQUET_THROW_NOT_OK(
             parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
