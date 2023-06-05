@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-class ExposedTimsDataHandle{
+class ExposedTimsDataHandle {
 public:
     // handle to read from raw data
     ExposedTimsDataHandle(const std::string& dp, const std::string& bp);

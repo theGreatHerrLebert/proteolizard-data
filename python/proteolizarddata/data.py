@@ -10,9 +10,10 @@ from abc import ABC, abstractmethod
 from typing import List
 import json
 
+
 class PyTimsSyntheticHandle:
 
-    def __init__(self, path:str):
+    def __init__(self, path: str):
         """
         Loading simulation data stored in parquet format.
 
@@ -39,8 +40,8 @@ class PyTimsSyntheticHandle:
         mzs_flattened = []
         intensities_flattened = []
 
-        for scan,mz_spectrum, intensity_spectrum in zip(scans,mzs,intensities):
-            for m,i in zip(mz_spectrum, intensity_spectrum):
+        for scan, mz_spectrum, intensity_spectrum in zip(scans,mzs,intensities):
+            for m, i in zip(mz_spectrum, intensity_spectrum):
                 scans_flattened.append(scan)
                 mzs_flattened.append(m)
                 intensities_flattened.append(i)

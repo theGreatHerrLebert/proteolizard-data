@@ -38,8 +38,19 @@ add_library(proteolizarddata SHARED
     src/TimsBlock.cpp
     src/TimsBlockVectorized.cpp
     src/ExposedTimsDataHandle.cpp
-    src/ParquetTimsDataHandle.cpp
 )
+
+add_executable(ArrowParquetExample src/main.cpp
+        src/VectorizedSpectrum.cpp
+        src/Spectrum.cpp
+        src/VectorizedFrame.cpp
+        src/Frame.cpp
+        src/Slice.cpp
+        src/SliceVectorized.cpp
+        src/TimsBlock.cpp
+        src/TimsBlockVectorized.cpp
+        src/ExposedTimsDataHandle.cpp
+        )
 
 set(ProteoLizardData_HEADER_FILES
     src/VectorizedSpectrum.h
@@ -51,12 +62,21 @@ set(ProteoLizardData_HEADER_FILES
     src/TimsBlock.h
     src/TimsBlockVectorized.h
     src/ExposedTimsDataHandle.h
-    src/ParquetTimsDataHandle.h
 )
 set_target_properties(proteolizarddata PROPERTIES PUBLIC_HEADER "${ProteoLizardData_HEADER_FILES}")
 
 target_link_libraries(proteolizarddata
     PUBLIC
+        Eigen3::Eigen
+        SQLite::SQLite3
+        TBB::tbb
+        Arrow::arrow_shared
+        Parquet::parquet_shared
+        ${ZSTD}
+)
+
+target_link_libraries(ArrowParquetExample
+    PRIVATE
         Eigen3::Eigen
         SQLite::SQLite3
         TBB::tbb
