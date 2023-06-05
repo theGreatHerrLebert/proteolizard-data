@@ -53,7 +53,7 @@ TimsSlicePL ParquetTimsDataHandle::getTimsSlicePL(int frameIdStart,
     std::transform(std::execution::par_unseq, paths.begin(), paths.end(), tables.begin(), p);
 
     std::vector<std::vector<TimsFramePL>> retFrameList;
-    framelis.resize(tables.size());
+    retFrameList.resize(tables.size());
 
     auto f = [](std::shared_ptr<arrow::Table>& f) -> std::vector<TimsFramePL> {
         return createFramesFromTable(f);
