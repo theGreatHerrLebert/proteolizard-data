@@ -17,7 +17,7 @@ public:
     ParquetTimsDataHandle(std::string dp);
     ~ParquetTimsDataHandle();
 
-    TimsSlicePL getBlock(int blockId, std::vector<int>& msMsTypes);
+    TimsSlicePL getTimsSlicePL(int blockId, std::vector<int>& msMsTypes);
     TimsFramePL getTimsFramePL(int blockId,
                                int rowGroupId,
                                int rowGroupIndexStart,
