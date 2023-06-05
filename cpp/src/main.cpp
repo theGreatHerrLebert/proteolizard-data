@@ -13,7 +13,7 @@
 #include <parquet/exception.h>
 #include "Frame.h"
 
-
+/*
 std::vector<TimsFramePL> createFramesFromTable(const std::shared_ptr<arrow::Table>& table) {
     // Vector to hold the frames
     std::vector<TimsFramePL> frame_vec;
@@ -78,10 +78,12 @@ std::shared_ptr<arrow::Table> readTable(std::string path) {
 
     return table;
 }
+*/
 
 
 int main(int argc, char** argv) {
-
+    return 0;
+    /*
     std::vector<std::string> paths;
 
     for (int i = 1; i <= 10; ++i) {
@@ -114,4 +116,5 @@ int main(int argc, char** argv) {
     for (int i = 0; i < framelis.size(); ++i) {
         std::cout << "Number of frames in table " << i << ": " << framelis[i].size() << std::endl;
     }
+     */
 }
