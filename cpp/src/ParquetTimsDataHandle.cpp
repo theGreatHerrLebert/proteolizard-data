@@ -73,7 +73,7 @@ TimsSlicePL ParquetTimsDataHandle::getTimsSlicePL(int frameIdStart,
                 if(type > 0){
                     fragments.push_back(frame);
                 } else {
-                    precursors.push_back(frame):
+                    precursors.push_back(frame);
                 }
             }
             counter++;
