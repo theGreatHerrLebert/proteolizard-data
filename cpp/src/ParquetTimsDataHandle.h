@@ -24,8 +24,8 @@ public:
                                int rowGroupIndexStop);
 
     // path to dataset
-    std::string rawDataPath;
-    std::string metaDataPath;
+    const std::string rawDataPath;
+    const std::string metaDataPath;
 
 private:
     static std::string initialize(const std::string& value);

@@ -13,7 +13,7 @@
 #include <parquet/exception.h>
 
 ParquetTimsDataHandle::ParquetTimsDataHandle(std::string dp):
-rawDataPath(initialize(dp) + "raw/"), 
+rawDataPath(initialize(dp) + "raw/"),
 metaDataPath(initialize(dp) + "meta/") {}
 
 TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
