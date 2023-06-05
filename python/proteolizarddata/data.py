@@ -9,61 +9,6 @@ from abc import ABC, abstractmethod
 from typing import List
 import json
 
-"""
-class PyTimsSyntheticHandle:
-
-    def __init__(self, path: str):
-        """
-        Loading simulation data stored in parquet format.
-
-        :param path: path to parquet folder
-        :type path: str
-        """
-        self.dataset = ds.dataset(path, format="parquet")
-
-    def get_frame(self, frame_id):
-        """
-        Load a simulated TimsFrame into memory.
-
-        :param frame_id: Id of frame to load.
-        :type frame_id: int
-        :return: TimsFrame of frame frame_id
-        :rtype: TimsFrame
-        """
-        table = self.dataset.scanner(filter=ds.field("frame_id")==frame_id).to_table()
-
-        scans = table["scan_id"].to_numpy()
-        mzs = table["mz"].to_numpy()
-        intensities = table["intensity"].to_numpy()
-        scans_flattened = []
-        mzs_flattened = []
-        intensities_flattened = []
-
-        for scan, mz_spectrum, intensity_spectrum in zip(scans,mzs,intensities):
-            for m, i in zip(mz_spectrum, intensity_spectrum):
-                scans_flattened.append(scan)
-                mzs_flattened.append(m)
-                intensities_flattened.append(i)
-
-        return TimsFrame(None, frame_id, -1., scans_flattened, mzs_flattened, intensities_flattened, [], [])
-
-    def get_slice(self, frame_min:int, frame_max:int):
-        """
-        Load a simulated TimsSlice into memory.
-
-        :param frame_min: Minimum frame id (inclusive).
-        :type frame_min: int
-        :param frame_max: Maximum frame id (inclusive).
-        :type frame_max: int
-        :return: TimsSlice with frame_id >= frame_min and frame_id <= frame_max
-        :rtype: TimsSlice
-        """
-        tims_frames = []
-        for f_id in range(frame_min, frame_max +1):
-            tims_frames.append(self.get_frame(f_id))
-
-        return TimsSlice(None, tims_frames, [])
-"""
 
 class PyTimsDataHandle(ABC):
     def __init__(self, dp):
@@ -950,3 +895,59 @@ class TimsBlockVectorized:
         :return:
         """
         return TimsBlockVectorized(self.__block_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
+
+
+#class PyTimsSyntheticHandle:
+#
+#    def __init__(self, path: str):
+#        """
+#        Loading simulation data stored in parquet format.
+#
+#        :param path: path to parquet folder
+#        :type path: str
+#        """
+#        self.dataset = ds.dataset(path, format="parquet")#
+
+#    def get_frame(self, frame_id):
+#        """
+#        Load a simulated TimsFrame into memory.
+#
+#        :param frame_id: Id of frame to load.
+#        :type frame_id: int
+#        :return: TimsFrame of frame frame_id
+#        :rtype: TimsFrame
+#        """
+#        table = self.dataset.scanner(filter=ds.field("frame_id")==frame_id).to_table()
+#
+#        scans = table["scan_id"].to_numpy()
+#        mzs = table["mz"].to_numpy()
+#        intensities = table["intensity"].to_numpy()
+#        scans_flattened = []
+#        mzs_flattened = []
+#        intensities_flattened = []
+#
+#        for scan, mz_spectrum, intensity_spectrum in zip(scans,mzs,intensities):
+#            for m, i in zip(mz_spectrum, intensity_spectrum):
+#                scans_flattened.append(scan)
+#                mzs_flattened.append(m)
+#                intensities_flattened.append(i)
+#
+#        return TimsFrame(None, frame_id, -1., scans_flattened, mzs_flattened, intensities_flattened, [], [])
+#
+#    def get_slice(self, frame_min:int, frame_max:int):
+#        """
+#        Load a simulated TimsSlice into memory.
+#
+#        :param frame_min: Minimum frame id (inclusive).
+#        :type frame_min: int
+#        :param frame_max: Maximum frame id (inclusive).
+#        :type frame_max: int
+#        :return: TimsSlice with frame_id >= frame_min and frame_id <= frame_max
+#        :rtype: TimsSlice
+#        """
+#        tims_frames = []
+#        for f_id in range(frame_min, frame_max +1):
+#            tims_frames.append(self.get_frame(f_id))
+#
+#        return TimsSlice(None, tims_frames, [])
+
