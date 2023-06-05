@@ -42,7 +42,7 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
     return {};
 }
 
-static std::string ParquetTimsDataHandle::initialize(const std::string &value) {
+std::string ParquetTimsDataHandle::initialize(const std::string &value) {
     {
         // Perform the logic here and return the string.
         if (value.back() != '/') {
