@@ -29,70 +29,6 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
     return {};
 }
 
-TimsSlicePL ParquetTimsDataHandle::getTimsSlicePL(int frameIdStart,
-                                                  int frameIdEnd,
-                                                  std::vector<int> &blockIds,
-                                                  std::vector<int> &msMsTypes) {
-
-    std::vector<std::string> paths;
-
-    for (auto i : blockIds) {
-        std::stringstream ss;
-        ss << this->rawDataPath + "BLOCK-" << i << ".parquet";
-        std::string path_to_file = ss.str();
-        paths.push_back(path_to_file);
-    }
-
-    std::vector<std::shared_ptr<arrow::Table>> tables;
-    tables.resize(paths.size());
-
-    auto p = [](std::string& path) -> std::shared_ptr<arrow::Table> {
-        return readTable(path);
-    };
-
-    std::transform(std::execution::par_unseq, paths.begin(), paths.end(), tables.begin(), p);
-
-    std::vector<std::vector<TimsFramePL>> retFrameList;
-    retFrameList.resize(tables.size());
-
-    auto f = [](std::shared_ptr<arrow::Table>& f) -> std::vector<TimsFramePL> {
-        return createFramesFromTable(f);
-    };
-
-    std::transform(std::execution::par_unseq, tables.begin(), tables.end(), retFrameList.begin(), f);
-
-    std::vector<TimsFramePL> precursors;
-    std::vector<TimsFramePL> fragments;
-
-    int counter = 0;
-
-    for(auto &frames: retFrameList){
-        for(auto &frame: frames){
-            int type = msMsTypes[counter];
-            if(frame.frameId >= frameIdStart && frame.frameId <= frameIdEnd){
-                if(type > 0){
-                    fragments.push_back(frame);
-                } else {
-                    precursors.push_back(frame);
-                }
-            }
-            counter++;
-        }
-    }
-    return {precursors, fragments};
-}
-
-std::string ParquetTimsDataHandle::initialize(const std::string &value) {
-    {
-        // Perform the logic here and return the string.
-        if (value.back() != '/') {
-            return value + '/';
-        } else {
-            return value;
-        }
-    }
-}
-
 std::vector<TimsFramePL> createFramesFromTable(const std::shared_ptr<arrow::Table>& table) {
     // Vector to hold the frames
     std::vector<TimsFramePL> frame_vec;
@@ -156,5 +92,69 @@ std::shared_ptr<arrow::Table> readTable(std::string path) {
     PARQUET_THROW_NOT_OK(reader->ReadTable(&table));
 
     return table;
+}
+
+TimsSlicePL ParquetTimsDataHandle::getTimsSlicePL(int frameIdStart,
+                                                  int frameIdEnd,
+                                                  std::vector<int> &blockIds,
+                                                  std::vector<int> &msMsTypes) {
+
+    std::vector<std::string> paths;
+
+    for (auto i : blockIds) {
+        std::stringstream ss;
+        ss << this->rawDataPath + "BLOCK-" << i << ".parquet";
+        std::string path_to_file = ss.str();
+        paths.push_back(path_to_file);
+    }
+
+    std::vector<std::shared_ptr<arrow::Table>> tables;
+    tables.resize(paths.size());
+
+    auto p = [](std::string& path) -> std::shared_ptr<arrow::Table> {
+        return readTable(path);
+    };
+
+    std::transform(std::execution::par_unseq, paths.begin(), paths.end(), tables.begin(), p);
+
+    std::vector<std::vector<TimsFramePL>> retFrameList;
+    retFrameList.resize(tables.size());
+
+    auto f = [](std::shared_ptr<arrow::Table>& f) -> std::vector<TimsFramePL> {
+        return createFramesFromTable(f);
+    };
+
+    std::transform(std::execution::par_unseq, tables.begin(), tables.end(), retFrameList.begin(), f);
+
+    std::vector<TimsFramePL> precursors;
+    std::vector<TimsFramePL> fragments;
+
+    int counter = 0;
+
+    for(auto &frames: retFrameList){
+        for(auto &frame: frames){
+            int type = msMsTypes[counter];
+            if(frame.frameId >= frameIdStart && frame.frameId <= frameIdEnd){
+                if(type > 0){
+                    fragments.push_back(frame);
+                } else {
+                    precursors.push_back(frame);
+                }
+            }
+            counter++;
+        }
+    }
+    return {precursors, fragments};
+}
+
+std::string ParquetTimsDataHandle::initialize(const std::string &value) {
+    {
+        // Perform the logic here and return the string.
+        if (value.back() != '/') {
+            return value + '/';
+        } else {
+            return value;
+        }
+    }
 }
 
