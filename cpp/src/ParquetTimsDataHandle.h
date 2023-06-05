@@ -24,8 +24,11 @@ public:
                                int rowGroupIndexStop);
 
     // path to dataset
-    const std::string rawDataPath;
-    const std::string metaDataPath;
+    std::string rawDataPath;
+    std::string metaDataPath;
+
+private:
+    static std::string initialize(const std::string& value);
 };
 
 #endif //PROTEOLIZARDDATA_PARQUETTIMSDATAHANDLE_H

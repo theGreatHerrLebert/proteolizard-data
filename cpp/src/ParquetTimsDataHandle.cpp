@@ -12,13 +12,9 @@
 #include <parquet/arrow/reader.h>
 #include <parquet/exception.h>
 
-ParquetTimsDataHandle::ParquetTimsDataHandle(std::string dp){
-    if (dp.back() != '/'){
-        dp += '/';
-    }
-    rawDataPath = dp + "raw/";
-    metaDataPath = dp + "meta/";
-}
+ParquetTimsDataHandle::ParquetTimsDataHandle(std::string dp):
+rawDataPath(initialize(dp) + "raw/"), 
+metaDataPath(initialize(dp) + "meta/") {}
 
 TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
                                                   int rowGroupId,
@@ -44,5 +40,16 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
     auto dataset = arrow::dataset::Dataset::Make({file_source}, format);
 
     return {};
+}
+
+static std::string ParquetTimsDataHandle::initialize(const std::string &value) {
+    {
+        // Perform the logic here and return the string.
+        if (value.back() != '/') {
+            return value + '/';
+        } else {
+            return value;
+        }
+    }
 }
 
