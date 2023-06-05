@@ -30,6 +30,7 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
 
     // Create a ParquetFileReader from a FileSource
     std::shared_ptr<arrow::io::ReadableFile> infile;
+
     PARQUET_ASSIGN_OR_THROW(
             infile,
             arrow::io::ReadableFile::Open(ss.str()));
@@ -39,7 +40,7 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
 
     // Create a dataset from the ParquetFileReader
     auto format = std::make_shared<arrow::dataset::ParquetFileFormat>();
-    auto file_source = std::make_shared<arrow::dataset::InMemoryDatasetSource>(reader->parquet_reader());
+    auto file_source = std::make_shared<arrow::dataset::InMemoryDataset>(reader->parquet_reader());
     auto dataset = arrow::dataset::Dataset::Make({file_source}, format);
 
     return {};
