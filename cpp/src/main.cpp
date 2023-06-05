@@ -15,5 +15,6 @@
 
 
 int main(int argc, char** argv) {
+    std::cout << ARROW_VERSION << std::endl;
     return 0;
 }
