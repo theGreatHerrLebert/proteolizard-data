@@ -32,7 +32,7 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
 TimsSlicePL ParquetTimsDataHandle::getTimsSlicePL(int frameIdStart,
                                                   int frameIdEnd,
                                                   std::vector<int> &blockIds,
-                                                  std::vector<int> &&msMsTypes) {
+                                                  std::vector<int> &msMsTypes) {
 
     std::vector<std::string> paths;
 
