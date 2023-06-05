@@ -897,7 +897,7 @@ class TimsBlockVectorized:
         return TimsBlockVectorized(self.__block_ptr.filterRanged(scan_min, scan_max, mz_min, mz_max, intensity_min))
 
 
-#class PyTimsSyntheticHandle:
+# class PyTimsSyntheticHandle:
 #
 #    def __init__(self, path: str):
 #        """

@@ -9,6 +9,5 @@ tensorflow>=2.8.0
 opentims_bruker_bridge
 tqdm
 pytest
-
-# pyarrow~=12.0.0
+pyarrow~=12.0.0
 proteolizarddata~=0.1.0
