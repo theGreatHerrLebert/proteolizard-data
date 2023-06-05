@@ -12,15 +12,20 @@
 #include "TimsBlock.h"
 
 class ParquetTimsDataHandle {
+
 public:
-    ParquetTimsDataHandle(const std::string& dp);
+    ParquetTimsDataHandle(std::string dp);
     ~ParquetTimsDataHandle();
 
     TimsSlicePL getBlock(int blockId, std::vector<int>& msMsTypes);
-    TimsFramePL getTimsFramePL(int blockId, int indexStart, int indexEnd);
+    TimsFramePL getTimsFramePL(int blockId,
+                               int rowGroupId,
+                               int rowGroupIndexStart,
+                               int rowGroupIndexStop);
 
     // path to dataset
-    std::string datasetPath;
+    const std::string rawDataPath;
+    const std::string metaDataPath;
 };
 
 #endif //PROTEOLIZARDDATA_PARQUETTIMSDATAHANDLE_H

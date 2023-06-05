@@ -38,6 +38,7 @@ add_library(proteolizarddata SHARED
     src/TimsBlock.cpp
     src/TimsBlockVectorized.cpp
     src/ExposedTimsDataHandle.cpp
+    src/ParquetTimsDataHandle.cpp
 )
 
 add_executable(ArrowParquetExample src/main.cpp
@@ -50,6 +51,7 @@ add_executable(ArrowParquetExample src/main.cpp
         src/TimsBlock.cpp
         src/TimsBlockVectorized.cpp
         src/ExposedTimsDataHandle.cpp
+        src/ParquetTimsDataHandle.cpp
         )
 
 set(ProteoLizardData_HEADER_FILES
@@ -62,6 +64,7 @@ set(ProteoLizardData_HEADER_FILES
     src/TimsBlock.h
     src/TimsBlockVectorized.h
     src/ExposedTimsDataHandle.h
+    src/ParquetTimsDataHandle.h
 )
 set_target_properties(proteolizarddata PROPERTIES PUBLIC_HEADER "${ProteoLizardData_HEADER_FILES}")
 
