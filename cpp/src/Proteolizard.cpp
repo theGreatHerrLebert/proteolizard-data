@@ -253,7 +253,7 @@ PYBIND11_MODULE(libproteolizarddata, h) {
     // -------------- CONSTRUCTOR ---------------
     .def(py::init<std::string &>())
     // -------------- MEMBER ---------------
-    .def("getTimsSlice", [](ExposedTimsDataHandle &self, int frameIdStart, int frameIdEnd, std::vector<int> blockIds, std::vector<int> msMsTypes) {
+    .def("getTimsSlice", [](ParquetTimsDataHandle &self, int frameIdStart, int frameIdEnd, std::vector<int> blockIds, std::vector<int> msMsTypes) {
     TimsSlicePL slice = self.getTimsSlicePL(frameIdStart, frameIdEnd, blockIds, msMsTypes);
     return slice;
     });
