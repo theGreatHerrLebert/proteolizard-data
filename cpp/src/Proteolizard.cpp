@@ -10,6 +10,7 @@
 #include "VectorizedSpectrum.h"
 #include "Spectrum.h"
 #include "ExposedTimsDataHandle.h"
+#include "ParquetTimsDataHandle.h"
 #include "Slice.h"
 #include "SliceVectorized.h"
 #include "TimsBlock.h"
@@ -247,6 +248,19 @@ PYBIND11_MODULE(libproteolizarddata, h) {
                 auto block = self.getTimsBlockPL(frameIds);
                 return block;
             });
+    // ---------------- CLASS TIMS-PARQUET-HANDLE ------------
+    py::class_<ParquetTimsDataHandle>(h, "ParquetTimsDataHandle")
+    // -------------- CONSTRUCTOR ---------------
+    .def(py::init<std::string &>())
+    // -------------- MEMBER ---------------
+    .def("getTimsSlice", [](ExposedTimsDataHandle &self, int frameIdStart, int frameIdEnd, std::vector<int> blockIds, std::vector<int> msMsTypes) {
+    TimsSlicePL slice = self.getTimsSlicePL(frameIdStart, frameIdEnd, blockIds, msMsTypes);
+    return slice;
+    })
+    .def("getGlobalMzAxis", [](ExposedTimsDataHandle &self){
+    std::vector<double> globalMz = self.getGlobalMzAxis();
+    return py::array(py::cast(globalMz));
+    })
     // ---------------- CLASS TIMS-POINTS3D ------------
     py::class_<Points3D>(h, "Points3D")
 
