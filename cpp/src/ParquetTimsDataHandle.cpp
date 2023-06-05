@@ -31,6 +31,7 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
     // Create a ParquetFileFormat
     std::shared_ptr<arrow::dataset::ParquetFileFormat> format = std::make_shared<arrow::dataset::ParquetFileFormat>();
 
+    /*
     // Create a DatasetFactory
     auto factory = arrow::dataset::FileSystemDatasetFactory::Make(fs, {filePath}, format, options);
 
@@ -39,26 +40,12 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
 
     auto result = factory->Finish(finish_options);
 
-    /*
-    if (!result.ok()) {
-        // Handle error...
-        return 1;
-    }
-     */
-
     std::shared_ptr<arrow::dataset::Dataset> dataset = *result;
 
     // Create a ScannerBuilder
     std::shared_ptr<arrow::dataset::ScannerBuilder> scanner_builder;
 
     auto scanner_builder_result = dataset->NewScan();
-
-    /*
-    if (!scanner_builder_result.ok()) {
-        // Handle error...
-        return 1;
-    }
-     */
 
     scanner_builder = *scanner_builder_result;
 
@@ -73,37 +60,16 @@ TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
 
     auto status = scanner_builder->Filter(predicate);
 
-    /*
-    // Apply the predicate
-    if (auto status = scanner_builder->Filter(predicate); !status.ok()) {
-        // Handle error...
-        return 1;
-    }
-     */
-
     // Create the Scanner
     arrow::Result<std::shared_ptr<arrow::dataset::Scanner>> scanner_result = scanner_builder->Finish();
-
-    /*
-    if (!scanner_result.ok()) {
-        // Handle error...
-        return 1;
-    }
-    */
 
     std::shared_ptr<arrow::dataset::Scanner> scanner = *scanner_result;
 
     // Scan the Dataset into a Table
     arrow::Result<std::shared_ptr<arrow::Table>> table_result = scanner->ToTable();
-    /*
-    if (!table_result.ok()) {
-        // Handle error...
-        return 1;
-    }
-     */
-    std::shared_ptr<arrow::Table> table = *table_result;
 
-    // Now you can use the Table...
+    std::shared_ptr<arrow::Table> table = *table_result;
+    */
 
     return {};
 }
