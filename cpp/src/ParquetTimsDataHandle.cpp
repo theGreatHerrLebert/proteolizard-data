@@ -18,6 +18,8 @@ ParquetTimsDataHandle::ParquetTimsDataHandle(std::string dp):
 rawDataPath(initialize(dp) + "raw/"),
 metaDataPath(initialize(dp) + "meta/") {}
 
+ParquetTimsDataHandle::~ParquetTimsDataHandle() = default;
+
 TimsFramePL ParquetTimsDataHandle::getTimsFramePL(int blockId,
                                                   int rowGroupId,
                                                   int rowGroupIndexStart,

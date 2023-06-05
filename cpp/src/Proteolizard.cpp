@@ -250,13 +250,14 @@ PYBIND11_MODULE(libproteolizarddata, h) {
             });
     // ---------------- CLASS TIMS-PARQUET-HANDLE ------------
     py::class_<ParquetTimsDataHandle>(h, "ParquetTimsDataHandle")
+
     // -------------- CONSTRUCTOR ---------------
-    .def(py::init<std::string &>())
-    // -------------- MEMBER ---------------
-    .def("getTimsSlice", [](ParquetTimsDataHandle &self, int frameIdStart, int frameIdEnd, std::vector<int> blockIds, std::vector<int> msMsTypes) {
-    TimsSlicePL slice = self.getTimsSlicePL(frameIdStart, frameIdEnd, blockIds, msMsTypes);
-    return slice;
-    });
+            .def(py::init<std::string &>())
+            // -------------- MEMBER ---------------
+            .def("getTimsSlice", [](ParquetTimsDataHandle &self, int frameIdStart, int frameIdEnd, std::vector<int> blockIds, std::vector<int> msMsTypes) {
+            TimsSlicePL slice = self.getTimsSlicePL(frameIdStart, frameIdEnd, blockIds, msMsTypes);
+            return slice;
+            });
     // ---------------- CLASS TIMS-POINTS3D ------------
     py::class_<Points3D>(h, "Points3D")
 
