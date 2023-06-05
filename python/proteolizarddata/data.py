@@ -1,6 +1,5 @@
 from __future__ import annotations
 import tensorflow as tf
-import pyarrow.dataset as ds
 import numpy as np
 import pandas as pd
 import sqlite3
@@ -10,7 +9,7 @@ from abc import ABC, abstractmethod
 from typing import List
 import json
 
-
+"""
 class PyTimsSyntheticHandle:
 
     def __init__(self, path: str):
@@ -64,7 +63,7 @@ class PyTimsSyntheticHandle:
             tims_frames.append(self.get_frame(f_id))
 
         return TimsSlice(None, tims_frames, [])
-
+"""
 
 class PyTimsDataHandle(ABC):
     def __init__(self, dp):
